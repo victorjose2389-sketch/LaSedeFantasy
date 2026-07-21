@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum League | Villegas Tech</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vt-bg: #030B1A;
+            --vt-panel-bg: rgba(9, 21, 46, 0.75);
+            --vt-panel-border: rgba(0, 240, 255, 0.25);
+            --vt-neon-cyan: #00F0FF;
+            --vt-neon-cyan-glow: rgba(0, 240, 255, 0.4);
+            --vt-neon-purple: #7000FF;
+            --vt-neon-purple-glow: rgba(112, 0, 255, 0.5);
+            --vt-text-main: #FFFFFF;
+            --vt-text-dim: #8BA2D0;
+            --ql-card-bg: rgba(15, 23, 42, 0.6);
+            --color-gold: #fbbf24;
+            --color-emerald: #00ff87;
+            --color-red: #ef4444;
+        }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Inter', sans-serif; outline: none;
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.25); border-radius: 10px; }
+
+        body {
+            background-color: var(--vt-bg);
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(112, 0, 255, 0.08) 0%, transparent 40%);
+            color: var(--vt-text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes livePulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.4; } }
+
+        /* ===== AUTH SCREEN ===== */
+        .auth-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            background-color: #030a17;
+            background-image: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="150" height="40" patternUnits="userSpaceOnUse"><text x="10" y="30" font-family="Outfit" font-size="28" font-weight="900" fill="rgba(255,255,255,0.02)">VILLEGAS TECH</text></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>');
+        }
+        .auth-screen.active { display: flex; }
+        .vt-login-card {
+            background: rgba(9, 21, 46, 0.4);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(0, 240, 255, 0.4);
+            border-radius: 16px;
+            padding: 40px; width: 100%; max-width: 420px;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.1);
+            text-align: center; position: relative;
+        }
+        .vt-login-card::before {
+            content: '';
+            position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--vt-neon-cyan), transparent, var(--vt-neon-cyan));
+            border-radius: 18px; z-index: -1; opacity: 0.5;
+        }
+        .vt-logo-icon {
+            font-family: 'Outfit', sans-serif;
+            font-size: 50px; font-weight: 900;
+            background: linear-gradient(135deg, #fff, var(--vt-neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1; letter-spacing: -2px; margin-bottom: 5px;
+        }
+        .vt-logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px; font-weight: 700; letter-spacing: 2px;
+        }
+        .vt-subtitle {
+            font-size: 10px; color: var(--vt-text-dim);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 30px; font-weight: 600;
+        }
+        .vt-input-group { margin-bottom: 16px; position: relative; }
+        .vt-input {
+            width: 100%; background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 8px; padding: 14px 14px 14px 40px;
+            color: #fff; font-size: 13px; transition: all 0.3s;
+        }
+        .vt-input:focus { border-color: var(--vt-neon-cyan); box-shadow: 0 0 15px var(--vt-neon-cyan-glow); }
+        .vt-input-icon {
+            position: absolute; left: 14px; top: 14px;
+            width: 16px; height: 16px; opacity: 0.7;
+        }
+        .vt-options {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; color: var(--vt-text-dim); margin-bottom: 25px;
+        }
+        .vt-btn-primary {
+            width: 100%; padding: 14px;
+            background: linear-gradient(90deg, #5b21b6, var(--vt-neon-purple), #5b21b6);
+            border: 1px solid rgba(112, 0, 255, 0.5); border-radius: 8px;
+            color: #fff; font-weight: 700; font-size: 14px;
+            cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 0 20px var(--vt-neon-purple-glow); margin-bottom: 15px;
+        }
+        .vt-btn-primary:hover { box-shadow: 0 0 30px var(--vt-neon-purple-glow); transform: translateY(-2px); }
+        .vt-btn-secondary {
+            width: 100%; padding: 14px;
+            background: #fff; border: none; border-radius: 8px;
+            color: #000; font-weight: 700; font-size: 12px;
+            cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        .vt-btn-secondary:hover { background: #e2e8f0; transform: translateY(-2px); }
+        .vt-footer { margin-top: 30px; font-size: 9px; color: var(--vt-text-dim); }
+        .auth-error { color: #ff4444; font-size: 12px; margin-bottom: 10px; display: none; }
+
+        /* ===== HEADER ===== */
+        #app { display: none; }
+        .ql-header {
+            background: rgba(3, 11, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 0 20px; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .ql-brand { display: flex; align-items: center; gap: 12px; }
+        .ql-logo-icon {
+            width: 32px; height: 32px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" stroke="%23fff" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>') center/contain no-repeat;
+        }
+        .ql-brand-text { display: flex; flex-direction: column; }
+        .ql-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px; font-weight: 800;
+            letter-spacing: 1px; line-height: 1.1;
+        }
+        .ql-subtitle { font-size: 11px; color: var(--vt-neon-cyan); font-weight: 600; }
+
+        .ql-nav {
+            display: flex; gap: 5px;
+            background: rgba(255,255,255,0.03);
+            padding: 4px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .ql-nav-item {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; color: var(--vt-text-dim);
+            cursor: pointer; transition: all 0.2s; font-size: 18px;
+        }
+        .ql-nav-item:hover { color: var(--vt-neon-cyan); background: rgba(0, 240, 255, 0.1); }
+        .ql-nav-item.active {
+            color: var(--vt-neon-cyan); background: rgba(0, 240, 255, 0.1);
+            box-shadow: inset 0 -2px 0 var(--vt-neon-cyan);
+        }
+
+        .ql-user-area { display: flex; align-items: center; gap: 20px; }
+        .ql-budget-display { text-align: right; }
+        .ql-budget-label { font-size: 9px; color: var(--vt-text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .ql-budget-value { color: var(--vt-neon-cyan); font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 16px; }
+        .ql-user-profile {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 12px; border-radius: 20px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .ql-user-profile:hover { background: rgba(255,255,255,0.1); }
+        .ql-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 12px;
+        }
+
+        /* ===== VIEWS ===== */
+        .view-content {
+            display: none; padding: 24px;
+            max-width: 1400px; margin: 0 auto;
+            animation: fadeIn 0.4s ease;
+        }
+        .view-content.active { display: block; }
+        .ql-section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px; font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        /* ===== CARDS ===== */
+        .ql-card {
+            background: var(--ql-card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px; padding: 20px;
+            position: relative; overflow: hidden;
+        }
+        .ql-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.3), transparent);
+        }
+        .btn {
+            padding: 10px 20px; border-radius: 20px; border: none;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
+            font-size: 13px; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: linear-gradient(90deg, #5b21b6, var(--vt-neon-purple)); color: #fff; box-shadow: 0 0 15px rgba(112,0,255,0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(112,0,255,0.7); }
+        .btn-secondary { background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .btn-glow { background: var(--vt-neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.4); font-weight: 700; }
+        .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(0,240,255,0.7); }
+        .btn-sm { padding: 6px 14px; font-size: 11px; }
+
+        /* ===== DASHBOARD ===== */
+        .dash-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        .chart-box h3 { font-size: 14px; color: var(--vt-text-dim); margin-bottom: 5px; }
+        .chart-box .pts-big { font-size: 36px; font-family: 'Outfit', sans-serif; color: var(--vt-neon-cyan); font-weight: 800; margin-bottom: 20px; }
+        .mini-table { width: 100%; border-collapse: collapse; }
+        .mini-table th, .mini-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; text-align: left; }
+        .mini-table th { color: var(--vt-text-dim); font-size: 11px; text-transform: uppercase; }
+        .live-score-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; font-weight: 600;
+        }
+        .live-score-item .score { color: var(--vt-neon-cyan); }
+        .live-dot { width: 8px; height: 8px; background: var(--color-red); border-radius: 50%; box-shadow: 0 0 10px var(--color-red); animation: livePulse 2s infinite; display: inline-block; }
+
+        /* ===== PITCH ===== */
+        .pitch-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+        .pitch-container {
+            width: 100%; height: 600px;
+            background: linear-gradient(180deg, #0a4f32 0%, #063822 100%);
+            border: 2px solid var(--vt-neon-cyan); border-radius: 16px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+        }
+        .pitch-lines { position: absolute; inset: 0; pointer-events: none; opacity: 0.3; }
+        .pitch-lines .center-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border: 2px solid #fff; border-radius: 50%; }
+        .pitch-lines .mid-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #fff; }
+        .pitch-lines .box-top { position: absolute; top: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-top: none; }
+        .pitch-lines .box-bottom { position: absolute; bottom: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-bottom: none; }
+        .positions-layout { position: absolute; inset: 0; }
+        .pitch-slot { position: absolute; transform: translate(-50%, -50%); cursor: pointer; transition: transform 0.2s; }
+        .pitch-slot:hover { transform: translate(-50%, -50%) scale(1.05); z-index: 10; }
+        .pitch-slot.selected .fc-card { border-color: var(--color-gold); box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
+
+        .fc-card {
+            width: 75px; height: 105px;
+            background: rgba(0,0,0,0.75);
+            border: 1px solid var(--vt-neon-cyan);
+            border-radius: 8px; color: white;
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 9px; text-align: center; overflow: hidden;
+            backdrop-filter: blur(4px); box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .fc-card.special-card { border-color: #a855f7; background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(0,0,0,0.8)); }
+        .fc-card.legendary-card { border-color: var(--color-gold); background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(0,0,0,0.8)); }
+        .fc-card.gold-card { border-color: #3b82f6; }
+        .card-top { width: 100%; display: flex; justify-content: space-between; padding: 4px; height: 55px; }
+        .card-rating-group { display: flex; flex-direction: column; align-items: center; }
+        .card-rating { font-size: 14px; font-weight: 800; font-family: 'Outfit'; }
+        .card-pos { font-size: 8px; color: var(--vt-text-dim); font-weight: 700; }
+        .card-avatar-initials { width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-left: auto; }
+        .card-name-band { width: 100%; background: rgba(255,255,255,0.1); padding: 2px 0; font-weight: 700; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-bottom-stats { width: 100%; display: flex; justify-content: space-around; padding: 4px 2px; }
+        .stat-col { display: flex; flex-direction: column; align-items: center; }
+        .stat-col span:first-child { font-weight: 700; color: var(--vt-neon-cyan); }
+        .stat-col span:last-child { font-size: 6px; color: var(--vt-text-dim); }
+
+        .gk-pos { top: 90%; left: 50%; }
+        .df-pos-1 { top: 72%; left: 20%; } .df-pos-2 { top: 72%; left: 40%; } .df-pos-3 { top: 72%; left: 60%; } .df-pos-4 { top: 72%; left: 80%; }
+        .mf-pos-1 { top: 50%; left: 20%; } .mf-pos-2 { top: 50%; left: 50%; } .mf-pos-3 { top: 50%; left: 80%; } .mf-pos-4 { top: 50%; left: 35%; } .mf-pos-5 { top: 50%; left: 65%; }
+        .fw-pos-1 { top: 25%; left: 30%; } .fw-pos-2 { top: 25%; left: 70%; } .fw-pos-3 { top: 25%; left: 50%; }
+
+        .mi-equipo-sidebar {
+            background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; padding: 20px;
+        }
+        .mi-equipo-sidebar h3 { font-family: 'Outfit'; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+
+        /* ===== MARKET ===== */
+        .market-top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .market-filters {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
+        }
+        .market-filters input, .market-filters select {
+            padding: 10px 15px; border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; font-size: 13px;
+        }
+        .market-filters input:focus, .market-filters select:focus { border-color: var(--vt-neon-cyan); }
+        .market-filters select option { background: #0a192f; }
+        .market-grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .market-player-row {
+            background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 15px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .market-player-header { display: flex; gap: 15px; align-items: center; }
+        .market-player-meta h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .market-player-meta p { font-size: 11px; color: var(--vt-text-dim); }
+        .market-stats-strip { display: flex; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+        .market-stats-strip .lbl { display: block; font-size: 8px; color: var(--vt-text-dim); margin-bottom: 2px; }
+        .market-stats-strip .v { font-weight: 700; font-size: 12px; }
+
+        /* ===== LEADERBOARD ===== */
+        .elite-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .elite-table th { padding: 0 20px; color: var(--vt-text-dim); font-size: 11px; text-transform: uppercase; text-align: left; }
+        .elite-table td { padding: 16px 20px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .elite-table tr td:first-child { border-left: 1px solid rgba(255,255,255,0.05); border-radius: 12px 0 0 12px; }
+        .elite-table tr td:last-child { border-right: 1px solid rgba(255,255,255,0.05); border-radius: 0 12px 12px 0; }
+        .elite-table tr.row-user-active td { background: rgba(0, 240, 255, 0.05); border-color: rgba(0,240,255,0.3); }
+        .ranking-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .rank-tab {
+            padding: 8px 20px; background: transparent;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;
+            color: #fff; cursor: pointer; font-size: 13px;
+        }
+        .rank-tab.active { background: var(--vt-neon-cyan); color: #000; border-color: var(--vt-neon-cyan); font-weight: 700; }
+
+        /* ===== SIDEBAR ===== */
+        .detail-sidebar {
+            position: fixed; top: 0; right: -400px; width: 400px; height: 100vh;
+            background: rgba(3, 11, 26, 0.95); backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000; transition: right 0.3s ease;
+            padding: 30px; overflow-y: auto;
+        }
+        .detail-sidebar.active { right: 0; }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: none; }
+        .sidebar-overlay.active { display: block; }
+        .close-sidebar-btn { position: absolute; top: 20px; left: 20px; background: transparent; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+
+        /* ===== TOAST ===== */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; }
+        .toast {
+            background: rgba(9, 21, 46, 0.9); border: 1px solid var(--vt-neon-cyan);
+            padding: 15px 20px; border-radius: 8px; margin-top: 10px;
+            color: #fff; display: flex; align-items: center; gap: 10px;
+            transform: translateX(120%); transition: 0.3s; font-size: 13px;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.error { border-color: var(--color-red); }
+    </style>
+</head>
+<body>
+
+    <!-- AUTH SCREEN -->
+    <div class="auth-screen active" id="screen-login">
+        <div class="vt-login-card">
+            <div class="vt-logo-icon">V7</div>
+            <div class="vt-logo-text">VILLEGAS TECH</div>
+            <div class="vt-subtitle">INICIO DE SESIÓN | ACCESO AL PORTAL DE DESARROLLADORES</div>
+
+            <div class="auth-error" id="login-error"></div>
+
+            <div class="vt-input-group">
+                <svg class="vt-input-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" class="vt-input" id="login-email" placeholder="Correo electrónico o Usuario">
+            </div>
+            <div class="vt-input-group">
+                <svg class="vt-input-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <input type="password" class="vt-input" id="login-pass" placeholder="Contraseña">
+            </div>
+
+            <div class="vt-options">
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <input type="checkbox" style="accent-color: var(--vt-neon-cyan);"> Recuérdame
+                </label>
+                <a href="#" style="color: var(--vt-text-dim); text-decoration: none;">Olvidé mi contraseña</a>
+            </div>
+
+            <button class="vt-btn-primary" onclick="loginUser()">ENTRAR</button>
+            <button class="vt-btn-secondary" onclick="showRegister()">CREAR CUENTA NUEVA</button>
+
+            <div class="vt-footer">© 2026 VILLEGAS TECH - Todos los derechos reservados.</div>
+        </div>
+    </div>
+
+    <!-- REGISTER SCREEN -->
+    <div class="auth-screen" id="screen-register">
+        <div class="vt-login-card">
+            <div class="vt-logo-icon">V7</div>
+            <div class="vt-logo-text">CREAR CUENTA</div>
+            <div class="vt-subtitle">REGISTRA TU EQUIPO Y COMPITE</div>
+
+            <div class="auth-error" id="register-error"></div>
+
+            <div class="vt-input-group">
+                <svg class="vt-input-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <input type="text" class="vt-input" id="reg-club" placeholder="Nombre de tu Equipo (Ej: Real Madrid FC)">
+            </div>
+            <div class="vt-input-group">
+                <svg class="vt-input-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <input type="email" class="vt-input" id="reg-email" placeholder="Correo electrónico">
+            </div>
+            <div class="vt-input-group">
+                <svg class="vt-input-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <input type="password" class="vt-input" id="reg-pass" placeholder="Contraseña">
+            </div>
+
+            <button class="vt-btn-primary" onclick="registerUser()">REGISTRAR EQUIPO</button>
+            <div class="vt-options" style="justify-content: center; margin-top: 10px;">
+                <a href="#" onclick="showLogin()" style="color: var(--vt-neon-cyan); font-weight:600;">¿Ya tienes cuenta? Entrar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app">
+        <header class="ql-header">
+            <div class="ql-brand">
+                <div class="ql-logo-icon"></div>
+                <div class="ql-brand-text">
+                    <span class="ql-title">QUANTUM LEAGUE</span>
+                    <span class="ql-subtitle">Champions Edge</span>
+                </div>
+            </div>
+            <div class="ql-nav">
+                <div class="ql-nav-item active" onclick="navigateTo('dashboard')" data-target="dashboard">🏠</div>
+                <div class="ql-nav-item" onclick="navigateTo('team')" data-target="team">⚽</div>
+                <div class="ql-nav-item" onclick="navigateTo('market')" data-target="market">👥</div>
+                <div class="ql-nav-item" onclick="navigateTo('leaderboard')" data-target="leaderboard">🏆</div>
+                <div class="ql-nav-item" onclick="navigateTo('calendar')" data-target="calendar">📅</div>
+                <div class="ql-nav-item" onclick="navigateTo('admin')" data-target="admin" id="nav-admin-btn" style="display:none;">⚙️</div>
+            </div>
+            <div class="ql-user-area">
+                <div class="ql-budget-display">
+                    <div class="ql-budget-label">Presupuesto</div>
+                    <div class="ql-budget-value" id="header-budget">25.0M</div>
+                </div>
+                <div class="ql-user-profile" onclick="logoutUser()">
+                    <div class="ql-avatar" id="header-avatar">QU</div>
+                    <span style="font-size: 13px; font-weight:600;" id="header-club-name">Quantum_User1</span>
+                    <span id="header-user-email" style="display:none;"></span>
+                    <span id="header-squad-value" style="display:none;"></span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- ===== DASHBOARD ===== -->
+            <div id="view-dashboard" class="view-content active">
+                <h1 class="ql-section-title">Dashboard</h1>
+                <div class="dash-layout">
+                    <div class="ql-card chart-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <h3>Current Week (GW 5):</h3>
+                            <span style="color: var(--vt-neon-cyan); font-size:12px; cursor:pointer;">Stats &rsaquo;</span>
+                        </div>
+                        <div class="pts-big" id="dash-pts">Pts 78</div>
+                        <div style="height: 150px; width:100%; border-bottom:1px solid rgba(255,255,255,0.1); position:relative;">
+                            <svg viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%; height:100%; overflow:visible;">
+                                <defs>
+                                    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:rgba(0,240,255,0.2);stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:rgba(0,240,255,0);stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0 30 L20 25 L40 35 L60 15 L80 10 L100 20" fill="none" stroke="var(--vt-neon-cyan)" stroke-width="2"/>
+                                <path d="M0 30 L20 25 L40 35 L60 15 L80 10 L100 20 L100 40 L0 40 Z" fill="url(#chartGrad)"/>
+                                <circle cx="80" cy="10" r="2" fill="#fff"/>
+                                <line x1="80" y1="10" x2="80" y2="40" stroke="rgba(0,240,255,0.3)" stroke-width="1" stroke-dasharray="2,2"/>
+                            </svg>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:10px; color:var(--vt-text-dim);">
+                            <span>GW1</span><span>GW2</span><span>GW3</span><span>GW4</span><span style="color:#fff; font-weight:700;">GW5</span>
+                        </div>
+                        <div style="display:none;">
+                            <span id="dash-shield"></span><span id="dash-club-name"></span><span id="dash-manager"></span><span id="dash-position"></span><span id="dash-budget"></span>
+                        </div>
+                    </div>
+
+                    <div class="ql-card" style="padding:20px;">
+                        <h3 style="font-size: 14px; margin-bottom: 15px; color: var(--vt-text-dim);">Live Score Feed &rsaquo;</h3>
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom: 20px;">
+                            <span class="live-dot"></span>
+                            <span style="font-size: 24px; font-family:'Outfit'; font-weight:700;">01.</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px;">
+                            <div style="font-size: 11px; margin-bottom: 10px; color: var(--vt-text-dim);">Live Score ...</div>
+                            <div class="live-score-item">
+                                <span style="display:flex; gap:10px; align-items:center;">🛡️ UCL</span>
+                                <span class="score">0 - 5</span>
+                                <span style="display:flex; gap:10px; align-items:center;">UCL 🛡️</span>
+                            </div>
+                            <div class="live-score-item" style="border:none;">
+                                <span style="display:flex; gap:10px; align-items:center;">🛡️ UCL</span>
+                                <span class="score" style="color:var(--color-emerald)">1 - 2</span>
+                                <span style="display:flex; gap:10px; align-items:center;">UCL 🛡️</span>
+                            </div>
+                            <div style="text-align:center; margin-top:15px; font-size:11px; color:var(--vt-neon-cyan); cursor:pointer;">View score</div>
+                        </div>
+                    </div>
+
+                    <div class="ql-card" style="padding: 20px; grid-column: 1 / -1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                            <h3 style="font-size:16px;">Copa de Amigos</h3>
+                            <span style="color:var(--vt-neon-cyan); font-size:12px; cursor:pointer;">Private League &rsaquo;</span>
+                        </div>
+                        <div id="dash-standings"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ALINEACIÓN ===== -->
+            <div id="view-team" class="view-content">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
+                    <h1 class="ql-section-title" style="margin:0;">Alineación</h1>
+                    <div style="text-align:right;">
+                        <div style="font-size:11px; color:var(--vt-text-dim);">Points Flow</div>
+                        <div style="font-size:24px; font-family:'Outfit'; font-weight:800; color:var(--vt-neon-cyan);">12 pts</div>
+                    </div>
+                </div>
+                <div class="pitch-layout">
+                    <div class="pitch-container">
+                        <div class="pitch-lines">
+                            <div class="center-circle"></div>
+                            <div class="mid-line"></div>
+                            <div class="box-top"></div>
+                            <div class="box-bottom"></div>
+                        </div>
+                        <div class="positions-layout" id="positions-root"></div>
+                    </div>
+                    <div class="mi-equipo-sidebar">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3>MI Equipo</h3>
+                            <select id="formation-select" onchange="setFormation(this.value)" style="background:transparent; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:4px 8px; border-radius:4px; font-size:11px;">
+                                <option value="4-3-3">4-3-3</option>
+                                <option value="4-4-2">4-4-2</option>
+                                <option value="3-5-2">3-5-2</option>
+                                <option value="4-2-3-1">4-2-3-1</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--vt-text-dim); margin-bottom:10px;">
+                            <span>Bench</span>
+                        </div>
+                        <div id="bench-root" style="display:flex; flex-direction:column;"></div>
+                        <button class="btn btn-glow" style="width:100%; margin-top:20px; border-radius:20px;">Guardar Alineación</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FICHAJES ===== -->
+            <div id="view-market" class="view-content">
+                <div class="market-top-bar">
+                    <h1 class="ql-section-title" style="margin:0;">QUANTA TRANSFER MARKET | EURO SUPERLEAGUE</h1>
+                </div>
+                <div class="market-filters ql-card">
+                    <input type="text" id="market-search" placeholder="🔍 Buscar Jugadores / Equipos..." style="flex-grow:1; min-width:250px;" oninput="debounceMarketSearch()">
+                    <select id="filter-position" onchange="applyMarketFilters()">
+                        <option value="">Posición ⌄</option>
+                        <option value="GK">Porteros</option>
+                        <option value="DF">Defensas</option>
+                        <option value="MF">Centrocampistas</option>
+                        <option value="FW">Delanteros</option>
+                    </select>
+                    <select id="filter-team" onchange="applyMarketFilters()">
+                        <option value="">Equipo real ⌄</option>
+                    </select>
+                    <select id="filter-status" onchange="applyMarketFilters()" style="display:none;"><option value=""></option></select>
+                    <select id="filter-sort" onchange="applyMarketFilters()">
+                        <option value="price-desc">Precio max ⌄</option>
+                        <option value="rating">Calificación</option>
+                        <option value="price-asc">Precio min</option>
+                        <option value="points">Puntos</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="applyMarketFilters()" style="border-radius:20px;">Filtrar</button>
+                </div>
+                <div class="market-grid-layout" id="market-cards-root"></div>
+            </div>
+
+            <!-- ===== CLASIFICACIÓN ===== -->
+            <div id="view-leaderboard" class="view-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+                    <h1 class="ql-section-title" style="margin:0;">Clasificación</h1>
+                    <div>
+                        <button class="btn btn-secondary btn-sm">Mi Perfil</button>
+                        <button class="btn btn-glow btn-sm">Crear Nueva Liga</button>
+                        <button class="btn btn-secondary btn-sm">Ver Reglas</button>
+                    </div>
+                </div>
+                <div class="ranking-tabs">
+                    <button class="rank-tab active" onclick="switchRankings('general')">Global</button>
+                    <button class="rank-tab" onclick="switchRankings('weekly')">Jornada</button>
+                    <button class="rank-tab" onclick="switchRankings('value')">Valor</button>
+                </div>
+                <div class="ql-card" style="padding: 0;">
+                    <table class="elite-table" id="leaderboard-table"></table>
+                </div>
+            </div>
+
+            <!-- ===== CALENDARIO ===== -->
+            <div id="view-calendar" class="view-content">
+                <h1 class="ql-section-title">Calendario</h1>
+                <div id="calendar-matches-root"></div>
+            </div>
+
+            <!-- ===== ADMIN ===== -->
+            <div id="view-admin" class="view-content">
+                <h1 class="ql-section-title">Panel de Administración</h1>
+                <div class="ql-card" style="padding:20px;">
+                    <h3 style="margin-bottom:15px;">Simulador de Jornada</h3>
+                    <div style="display:flex; gap:15px;">
+                        <button class="btn btn-primary btn-glow" onclick="simulateMatchday('champions')">Simular Champions</button>
+                        <button class="btn btn-secondary" onclick="simulateMatchday('liga')">Simular Liga</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="detail-sidebar" id="detail-sidebar">
+        <button class="close-sidebar-btn" onclick="closeSidebar()">×</button>
+        <div id="detail-sidebar-content"></div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- TOAST -->
+    <div id="toast-container"></div>
+
+    <script>
+        const DIRECT_QUALIFIED_TEAMS = [
+            { id: "ars", name: "Arsenal", league: "Premier League" },
+            { id: "mci", name: "Manchester City", league: "Premier League" },
+            { id: "mun", name: "Manchester United", league: "Premier League" },
+            { id: "avl", name: "Aston Villa", league: "Premier League" },
+            { id: "liv", name: "Liverpool", league: "Premier League" },
+            { id: "bar", name: "Barcelona", league: "LaLiga" },
+            { id: "rma", name: "Real Madrid", league: "LaLiga" },
+            { id: "vil", name: "Villarreal", league: "LaLiga" },
+            { id: "atm", name: "Atletico Madrid", league: "LaLiga" },
+            { id: "bet", name: "Real Betis", league: "LaLiga" },
+            { id: "bay", name: "Bayern Munich", league: "Bundesliga" },
+            { id: "bvb", name: "Borussia Dortmund", league: "Bundesliga" },
+            { id: "rbl", name: "RB Leipzig", league: "Bundesliga" },
+            { id: "stu", name: "Stuttgart", league: "Bundesliga" },
+            { id: "int", name: "Internazionale", league: "Serie A" },
+            { id: "nap", name: "Napoli", league: "Serie A" },
+            { id: "rom", name: "AS Roma", league: "Serie A" },
+            { id: "com", name: "Como", league: "Serie A" },
+            { id: "psg", name: "Paris Saint-Germain", league: "Ligue 1" },
+            { id: "len", name: "RC Lens", league: "Ligue 1" },
+            { id: "lil", name: "LOSC Lille", league: "Ligue 1" },
+            { id: "psv", name: "PSV Eindhoven", league: "Eredivisie" },
+            { id: "fey", name: "Feyenoord", league: "Eredivisie" },
+            { id: "por", name: "FC Porto", league: "Liga Portugal" },
+            { id: "scp", name: "Sporting CP", league: "Liga Portugal" },
+            { id: "bru", name: "Club Brugge", league: "Jupiler Pro League" },
+            { id: "gal", name: "Galatasaray", league: "Süper Lig" },
+            { id: "shk", name: "Shakhtar Donetsk", league: "Premier League" },
+            { id: "sla", name: "Slavia Praha", league: "Czech First League" }
+        ];
+
+        const STAR_PLAYERS_POOL = [
+            { id: "p1", name: "Erling Haaland", teamId: "mci", pos: "FW", rating: 9.2, val: 32.0, pts: 140, ptsUcl: 85, ptsLiga: 55, owner: "Libre", status: "libre" },
+            { id: "p2", name: "Kylian Mbappé", teamId: "rma", pos: "FW", rating: 9.4, val: 30.0, pts: 145, ptsUcl: 90, ptsLiga: 55, owner: "Libre", status: "libre" },
+            { id: "p3", name: "Jude Bellingham", teamId: "rma", pos: "MF", rating: 9.1, val: 26.0, pts: 132, ptsUcl: 72, ptsLiga: 60, owner: "Libre", status: "libre" },
+            { id: "p4", name: "Lamine Yamal", teamId: "bar", pos: "FW", rating: 8.7, val: 22.0, pts: 104, ptsUcl: 54, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p5", name: "Martin Ødegaard", teamId: "ars", pos: "MF", rating: 8.9, val: 21.0, pts: 110, ptsUcl: 60, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p6", name: "Mohamed Salah", teamId: "liv", pos: "FW", rating: 8.8, val: 20.0, pts: 115, ptsUcl: 65, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p7", name: "William Saliba", teamId: "ars", pos: "DF", rating: 8.5, val: 16.0, pts: 88, ptsUcl: 48, ptsLiga: 40, owner: "Libre", status: "libre" },
+            { id: "p8", name: "Rodri", teamId: "mci", pos: "MF", rating: 8.8, val: 24.0, pts: 120, ptsUcl: 70, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p9", name: "Thibaut Courtois", teamId: "rma", pos: "GK", rating: 8.9, val: 12.0, pts: 110, ptsUcl: 60, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p10", name: "Pedri", teamId: "bar", pos: "MF", rating: 8.1, val: 18.0, pts: 95, ptsUcl: 45, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p11", name: "Theo Hernández", teamId: "int", pos: "DF", rating: 7.9, val: 14.0, pts: 85, ptsUcl: 45, ptsLiga: 40, owner: "Libre", status: "libre" },
+            { id: "p12", name: "Rüdiger", teamId: "rma", pos: "DF", rating: 8.4, val: 15.0, pts: 92, ptsUcl: 52, ptsLiga: 40, owner: "Libre", status: "libre" },
+            { id: "p13", name: "Hakimi", teamId: "psg", pos: "DF", rating: 8.0, val: 15.0, pts: 90, ptsUcl: 50, ptsLiga: 40, owner: "Libre", status: "libre" },
+            { id: "p14", name: "Musiala", teamId: "bay", pos: "MF", rating: 8.8, val: 22.0, pts: 105, ptsUcl: 55, ptsLiga: 50, owner: "Libre", status: "libre" },
+            { id: "p15", name: "Lautaro Martínez", teamId: "int", pos: "FW", rating: 8.6, val: 19.0, pts: 98, ptsUcl: 48, ptsLiga: 50, owner: "Libre", status: "libre" }
+        ];
+
+        let ROSTER_DATABASE = {};
+        let MARKET_DATABASE = [];
+        let GLOBAL_LEADERBOARD = {};
+        let userBudget = 25.0;
+        let currentUser = null;
+        let activeRankingTab = "general";
+        let selectedPitchSlotKey = null;
+
+        const FORMATIONS = {
+            "4-3-3": { gk: 1, df: 4, mf: 3, fw: 3, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","fw-pos-1","fw-pos-2","fw-pos-3"] },
+            "4-4-2": { gk: 1, df: 4, mf: 4, fw: 2, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","fw-pos-1","fw-pos-2"] },
+            "3-5-2": { gk: 1, df: 3, mf: 5, fw: 2, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1","fw-pos-2"] },
+            "4-2-3-1": { gk: 1, df: 4, mf: 5, fw: 1, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1"] }
+        };
+        const ROSTER_SLOTS = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","fw2","fw3"];
+        let currentFormation = "4-3-3";
+        let marketPage = 1;
+        const MARKET_PAGE_SIZE = 10;
+        let _debounceTimer = null;
+
+        function loadAppData() {
+            if (!localStorage.getItem("FE_MARKET")) localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
+            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "25.0");
+            if (!localStorage.getItem("FE_FORMATION")) localStorage.setItem("FE_FORMATION", "4-3-3");
+            if (!localStorage.getItem("FE_LEADERBOARD")) localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD_FALLBACK));
+
+            MARKET_DATABASE = JSON.parse(localStorage.getItem("FE_MARKET"));
+            userBudget = parseFloat(localStorage.getItem("FE_BUDGET"));
+            currentFormation = localStorage.getItem("FE_FORMATION");
+            GLOBAL_LEADERBOARD = JSON.parse(localStorage.getItem("FE_LEADERBOARD"));
+
+            const storedRoster = localStorage.getItem("FE_ROSTER");
+            if (storedRoster) {
+                ROSTER_DATABASE = JSON.parse(storedRoster);
+            } else {
+                ROSTER_DATABASE = {
+                    gk:  { id: "p9",  name: "Courtois",   teamId: "rma", pos: "GK", rating: 8.9, val: 12.0, pts: 110, ptsUcl: 60, ptsLiga: 50, cap: "V" },
+                    df1: { id: "p11", name: "Theo H.",    teamId: "int", pos: "DF", rating: 7.9, val: 14.0, pts: 85,  ptsUcl: 45, ptsLiga: 40, cap: "" },
+                    df2: { id: "p12", name: "Rüdiger",    teamId: "rma", pos: "DF", rating: 8.4, val: 15.0, pts: 92,  ptsUcl: 52, ptsLiga: 40, cap: "" },
+                    df3: { id: "p7",  name: "Saliba",     teamId: "ars", pos: "DF", rating: 8.5, val: 16.0, pts: 88,  ptsUcl: 48, ptsLiga: 40, cap: "" },
+                    df4: { id: "p13", name: "Hakimi",     teamId: "psg", pos: "DF", rating: 8.0, val: 15.0, pts: 90,  ptsUcl: 50, ptsLiga: 40, cap: "" },
+                    mf1: { id: "p10", name: "Pedri",      teamId: "bar", pos: "MF", rating: 8.1, val: 18.0, pts: 95,  ptsUcl: 45, ptsLiga: 50, cap: "" },
+                    mf2: { id: "p8",  name: "Rodri",      teamId: "mci", pos: "MF", rating: 8.8, val: 24.0, pts: 120, ptsUcl: 70, ptsLiga: 50, cap: "" },
+                    mf3: { id: "p3",  name: "Bellingham", teamId: "rma", pos: "MF", rating: 9.1, val: 26.0, pts: 132, ptsUcl: 72, ptsLiga: 60, cap: "" },
+                    fw1: { id: "p4",  name: "L. Yamal",   teamId: "bar", pos: "FW", rating: 8.7, val: 22.0, pts: 104, ptsUcl: 54, ptsLiga: 50, cap: "" },
+                    fw2: { id: "p1",  name: "Haaland",    teamId: "mci", pos: "FW", rating: 9.2, val: 32.0, pts: 140, ptsUcl: 85, ptsLiga: 55, cap: "" },
+                    fw3: { id: "p2",  name: "Mbappé",     teamId: "rma", pos: "FW", rating: 9.4, val: 30.0, pts: 145, ptsUcl: 90, ptsLiga: 55, cap: "C" }
+                };
+                saveRoster();
+            }
+            for (let key in ROSTER_DATABASE) {
+                const player = ROSTER_DATABASE[key];
+                if (player && !player.initials) player.initials = player.name.split(" ").map(w => w[0]).join("").substring(0, 3).toUpperCase();
+            }
+        }
+
+        const GLOBAL_LEADERBOARD_FALLBACK = {
+            general: [
+                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 1025, val: 182.0 },
+                { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 965, val: 179.5 },
+                { rank: 3, team: "Victor FC (Tú)", manager: "Victor", pts: 485, val: 175.5, current: true },
+                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 462, val: 168.0 },
+                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 450, val: 155.0 }
+            ],
+            weekly: [
+                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 88.5, val: 182.0 },
+                { rank: 2, team: "Victor FC (Tú)", manager: "Victor", pts: 82.1, val: 175.5, current: true },
+                { rank: 3, team: "Carlos FC",    manager: "Carlos", pts: 78.4, val: 182.0 },
+                { rank: 4, team: "Barça Elite",  manager: "Laura",  pts: 70.2, val: 155.0 },
+                { rank: 5, team: "Madridista Club", manager: "Ramón", pts: 65.4, val: 168.0 }
+            ],
+            value: [
+                { rank: 1, team: "Carlos FC",    manager: "Carlos", pts: 512.4, val: 182.0 },
+                { rank: 2, team: "Sofia CF",     manager: "Sofía",  pts: 498.9, val: 179.5 },
+                { rank: 3, team: "Victor FC (Tú)", manager: "Victor", pts: 485.4, val: 175.5, current: true },
+                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 462.1, val: 168.0 },
+                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 450.3, val: 155.0 }
+            ]
+        };
+
+        const SCHEDULED_MATCHES = [];
+
+        function saveRoster() { localStorage.setItem("FE_ROSTER", JSON.stringify(ROSTER_DATABASE)); }
+        function saveMarket() { localStorage.setItem("FE_MARKET", JSON.stringify(MARKET_DATABASE)); }
+        function saveBudget() { localStorage.setItem("FE_BUDGET", userBudget.toFixed(1)); }
+        function saveFormation() { localStorage.setItem("FE_FORMATION", currentFormation); }
+        function saveLeaderboard() { localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD)); }
+
+        function loginUser() {
+            const email = document.getElementById("login-email").value.trim();
+            const pass = document.getElementById("login-pass").value;
+            const errEl = document.getElementById("login-error");
+            if (!email || !pass) { errEl.textContent = "Completa todos los campos."; errEl.style.display = "block"; return; }
+            if (email === "admin" && pass === "fantasy2027") {
+                errEl.style.display = "none";
+                currentUser = { email: "admin@fantasyelite.com", role: "admin", clubName: "Victor FC" };
+                sessionStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
+                bootstrapApp();
+                showNotification("Acceso autorizado.", "success");
+                return;
+            }
+            errEl.style.display = "none";
+            currentUser = { email: email, role: "user", clubName: email.split("@")[0].toUpperCase() + " FC" };
+            sessionStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
+            bootstrapApp();
+            showNotification(`Bienvenido, mánager de ${currentUser.clubName}.`, "success");
+        }
+
+        function registerUser() {
+            const club = document.getElementById("reg-club").value.trim();
+            const email = document.getElementById("reg-email").value.trim();
+            const pass = document.getElementById("reg-pass").value;
+            const errEl = document.getElementById("register-error");
+            if (!club || !email || !pass) { errEl.textContent = "Completa todos los campos."; errEl.style.display = "block"; return; }
+            errEl.style.display = "none";
+            currentUser = { email: email, role: "user", clubName: club };
+            sessionStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
+            bootstrapApp();
+            showNotification(`Cuenta creada con éxito.`, "success");
+        }
+
+        function logoutUser() {
+            sessionStorage.removeItem("FE_USER_SESSION"); currentUser = null;
+            document.getElementById("app").style.display = "none";
+            document.getElementById("nav-admin-btn").style.display = "none";
+            document.getElementById("screen-login").classList.add("active");
+            document.getElementById("screen-register").classList.remove("active");
+        }
+
+        function showLogin() { document.getElementById("screen-login").classList.add("active"); document.getElementById("screen-register").classList.remove("active"); }
+        function showRegister() { document.getElementById("screen-register").classList.add("active"); document.getElementById("screen-login").classList.remove("active"); }
+
+        function bootstrapApp() {
+            loadAppData();
+            document.getElementById("screen-login").classList.remove("active");
+            document.getElementById("screen-register").classList.remove("active");
+            document.getElementById("app").style.display = "block";
+            if (currentUser && currentUser.role === "admin") document.getElementById("nav-admin-btn").style.display = "flex";
+            else document.getElementById("nav-admin-btn").style.display = "none";
+            updateHeaderUser();
+            updateDashboard();
+            renderTacticalBoard();
+            renderBench();
+            populateMarketFilters();
+            applyMarketFilters();
+            renderRankingTable();
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const storedUser = sessionStorage.getItem("FE_USER_SESSION");
+            if (storedUser) { currentUser = JSON.parse(storedUser); bootstrapApp(); }
+        });
+
+        function updateHeaderUser() {
+            if (!currentUser) return;
+            const initials = currentUser.clubName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+            document.getElementById("header-avatar").textContent = initials;
+            document.getElementById("header-club-name").textContent = currentUser.clubName;
+            document.getElementById("header-user-email").textContent = currentUser.email;
+        }
+
+        function navigateTo(targetId) {
+            closeSidebar();
+            document.querySelectorAll(".ql-nav-item").forEach(item => { item.classList.toggle("active", item.getAttribute("data-target") === targetId); });
+            document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+            const target = document.getElementById("view-" + targetId);
+            if (target) target.classList.add("active");
+            if (targetId === "team") { renderTacticalBoard(); renderBench(); }
+            if (targetId === "market") applyMarketFilters();
+            if (targetId === "leaderboard") renderRankingTable();
+            if (targetId === "dashboard") updateDashboard();
+        }
+
+        function setFormation(f) { currentFormation = f; saveFormation(); renderTacticalBoard(); renderBench(); showNotification(`Táctica cambiada a ${f}.`, "info"); }
+
+        function renderTacticalBoard() {
+            const root = document.getElementById("positions-root");
+            if (!root) return;
+            root.innerHTML = "";
+            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
+            document.getElementById("formation-select").value = currentFormation;
+            for (let i = 0; i < formation.positions.length && i < ROSTER_SLOTS.length; i++) {
+                const slotKey = ROSTER_SLOTS[i];
+                const player = ROSTER_DATABASE[slotKey];
+                if (!player) continue;
+                const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
+                const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
+                root.insertAdjacentHTML("beforeend", `
+                    <div class="pitch-slot ${formation.positions[i]} ${isSelected}" onclick="handleSlotSelection('${slotKey}')">
+                        <div class="fc-card ${isSpecial}">
+                            <div class="card-top">
+                                <div class="card-rating-group">
+                                    <span class="card-rating">${Math.floor(player.rating * 10)}</span>
+                                    <span class="card-pos">${player.pos}</span>
+                                </div>
+                                <div class="card-avatar-initials">${player.initials}</div>
+                            </div>
+                            <div class="card-name-band">${player.name}</div>
+                            <div class="card-bottom-stats">
+                                <div class="stat-col"><span>${player.pts}</span><span>PTS</span></div>
+                                <div class="stat-col"><span>${player.val}M</span><span>VAL</span></div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+        }
+
+        function renderBench() {
+            const root = document.getElementById("bench-root");
+            if (!root) return;
+            root.innerHTML = "";
+            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
+            const starterCount = formation.positions.length;
+            const rosterKeys = Object.keys(ROSTER_DATABASE);
+            const benchPlayers = rosterKeys.slice(starterCount);
+            if (benchPlayers.length === 0) return;
+            benchPlayers.forEach(slotKey => {
+                const player = ROSTER_DATABASE[slotKey];
+                if (!player) return;
+                const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
+                const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
+                root.insertAdjacentHTML("beforeend", `
+                    <div class="pitch-slot bench-slot ${isSelected}" onclick="handleSlotSelection('${slotKey}')" style="position:relative; transform:none; display:inline-block; margin-bottom:10px;">
+                        <div class="fc-card ${isSpecial}" style="width: 100%; display:flex; flex-direction:row; align-items:center; height: 50px;">
+                            <div class="card-top" style="height:100%; flex-direction:row; align-items:center; width:50px;">
+                                <div class="card-rating-group" style="margin-left: 5px;">
+                                    <span class="card-rating" style="font-size:12px;">${Math.floor(player.rating * 10)}</span>
+                                    <span class="card-pos">${player.pos}</span>
+                                </div>
+                            </div>
+                            <div class="card-name-band" style="background:none; flex-grow:1; text-align:left; font-size:11px; padding-left:10px;">${player.name}</div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function handleSlotSelection(slotKey) {
+            if (selectedPitchSlotKey === null) {
+                selectedPitchSlotKey = slotKey;
+                showNotification(`Has seleccionado a ${ROSTER_DATABASE[slotKey].name}. Elige con quién intercambiar.`, "info");
+            } else {
+                if (selectedPitchSlotKey !== slotKey) {
+                    const p1 = ROSTER_DATABASE[selectedPitchSlotKey];
+                    const p2 = ROSTER_DATABASE[slotKey];
+                    ROSTER_DATABASE[selectedPitchSlotKey] = p2;
+                    ROSTER_DATABASE[slotKey] = p1;
+                    saveRoster();
+                    showNotification(`Cambio: ${p1.name} 🔄 ${p2.name}.`, "success");
+                }
+                selectedPitchSlotKey = null;
+            }
+            renderTacticalBoard(); renderBench();
+        }
+
+        function debounceMarketSearch() { clearTimeout(_debounceTimer); _debounceTimer = setTimeout(() => applyMarketFilters(), 300); }
+
+        function applyMarketFilters(resetPage = true) {
+            if (resetPage) marketPage = 1;
+            const query = document.getElementById("market-search").value.toLowerCase();
+            const position = document.getElementById("filter-position").value;
+            const team = document.getElementById("filter-team").value;
+            const sort = document.getElementById("filter-sort").value;
+            let result = [...MARKET_DATABASE];
+            if (query) result = result.filter(p => p.name.toLowerCase().includes(query));
+            if (position) result = result.filter(p => p.pos === position);
+            if (team) result = result.filter(p => p.teamId === team);
+            if (sort === "rating") result.sort((a,b) => b.rating - a.rating);
+            else if (sort === "price-desc") result.sort((a,b) => b.val - a.val);
+            else if (sort === "price-asc") result.sort((a,b) => a.val - b.val);
+            else if (sort === "points") result.sort((a,b) => b.pts - a.pts);
+            renderMarketDeck(result);
+        }
+
+        function renderMarketDeck(data) {
+            const root = document.getElementById("market-cards-root");
+            if (!root) return;
+            root.innerHTML = "";
+            if (data.length === 0) { root.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--vt-text-dim);">No hay resultados.</div>`; return; }
+            data.slice(0, 12).forEach(player => {
+                const isOcupado = player.status === "ocupado";
+                const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
+                root.insertAdjacentHTML("beforeend", `
+                    <div class="market-player-row">
+                        <div class="market-player-header">
+                            <div class="fc-card ${isSpecial}" style="transform:none; position:relative; width:65px; height:90px;" onclick="openMarketPlayerProfile('${player.id}')">
+                                <div class="card-top" style="height:45px;">
+                                    <div class="card-rating-group"><span class="card-rating">${Math.floor(player.rating * 10)}</span><span class="card-pos">${player.pos}</span></div>
+                                    <div class="card-avatar-initials" style="width:24px;height:24px;font-size:10px;">${player.initials}</div>
+                                </div>
+                                <div class="card-name-band" style="font-size:7px;">${player.name}</div>
+                            </div>
+                            <div class="market-player-meta">
+                                <h4>${player.name}</h4>
+                                <p>${getTeamName(player.teamId)}</p>
+                                <p style="margin-top: 5px; color: var(--vt-neon-cyan); font-weight:600; font-size: 11px;">${player.pos}</p>
+                            </div>
+                        </div>
+                        <div class="market-stats-strip">
+                            <div><span class="lbl">FANTASY PTS</span><span class="v" style="color:var(--vt-neon-cyan)">${player.pts}</span></div>
+                            <div><span class="lbl">VALOR</span><span class="v" style="color:var(--color-gold)">${player.val.toFixed(1)}M</span></div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; font-size: 11px; padding: 8px; border-radius:20px;" onclick="${isOcupado ? `negotiateOffer('${player.id}')` : `buyFreeAgent('${player.id}')`}">${isOcupado ? 'Hacer Oferta' : 'Fichar Ahora'}</button>
+                    </div>
+                `);
+            });
+        }
+
+        function populateMarketFilters() {
+            const teamSel = document.getElementById("filter-team");
+            if (teamSel) { teamSel.innerHTML = '<option value="">Equipo real ⌄</option>'; DIRECT_QUALIFIED_TEAMS.forEach(t => { teamSel.innerHTML += `<option value="${t.id}">${t.name}</option>`; }); }
+        }
+
+        function getTeamName(teamId) { const t = DIRECT_QUALIFIED_TEAMS.find(item => item.id === teamId); return t ? t.name : "Club"; }
+
+        function openMarketPlayerProfile(playerId) {
+            const player = MARKET_DATABASE.find(p => p.id === playerId);
+            if (!player) return;
+            const root = document.getElementById("detail-sidebar-content");
+            root.innerHTML = `
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div style="width:80px;height:80px;background:#333;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">${player.initials}</div>
+                    <h2>${player.name}</h2>
+                    <p style="color:var(--vt-text-dim)">${getTeamName(player.teamId)}</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px; text-align:center;">
+                    <div><span style="display:block; font-size:10px; color:var(--vt-text-dim)">VALOR</span><span style="font-weight:700; color:var(--color-gold)">${player.val.toFixed(1)}M</span></div>
+                    <div><span style="display:block; font-size:10px; color:var(--vt-text-dim)">PUNTOS</span><span style="font-weight:700; color:var(--vt-neon-cyan)">${player.pts}</span></div>
+                </div>
+                <button class="btn btn-primary btn-glow" style="width:100%" onclick="${player.status === 'ocupado' ? `negotiateOffer('${player.id}')` : `buyFreeAgent('${player.id}')`}">${player.status === 'ocupado' ? 'Ofertar' : 'Fichar'}</button>
+            `;
+            openSidebar();
+        }
+
+        function openSidebar() { document.getElementById("detail-sidebar").classList.add("active"); document.getElementById("sidebar-overlay").classList.add("active"); }
+        function closeSidebar() { document.getElementById("detail-sidebar").classList.remove("active"); document.getElementById("sidebar-overlay").classList.remove("active"); }
+
+        function buyFreeAgent(playerId) {
+            const playerIndex = MARKET_DATABASE.findIndex(p => p.id === playerId);
+            if (playerIndex === -1) return;
+            const player = MARKET_DATABASE[playerIndex];
+            if (userBudget < player.val) { showNotification("Presupuesto insuficiente.", "error"); return; }
+            userBudget -= player.val; player.owner = currentUser ? currentUser.clubName : "Victor FC"; player.status = "ocupado";
+            saveMarket(); saveBudget(); updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar();
+            showNotification(`¡Fichaje oficializado! ${player.name} se une a tu plantilla.`, "success");
+        }
+
+        function negotiateOffer(playerId) {
+            const player = MARKET_DATABASE.find(p => p.id === playerId);
+            if (!player) return;
+            showNotification(`Oferta enviada por ${player.name}.`, "info"); closeSidebar();
+        }
+
+        function renderRankingTable() {
+            const table = document.getElementById("leaderboard-table");
+            if (!table) return;
+            const sorted = GLOBAL_LEADERBOARD[activeRankingTab] || GLOBAL_LEADERBOARD_FALLBACK[activeRankingTab];
+            let html = `<thead><tr>
+                <th>#</th><th>Usuario</th><th>Equipo Fantasy</th>
+                <th style="text-align: right;">${activeRankingTab === 'value' ? 'Mercado (Gasto)' : 'Ptos Totales'}</th>
+            </tr></thead><tbody>`;
+            sorted.forEach((row, i) => {
+                html += `<tr class="${row.current ? 'row-user-active' : ''}">
+                    <td style="font-weight: 700;">${i + 1}.</td>
+                    <td style="display:flex; align-items:center; gap:10px;"><div style="width:24px;height:24px;background:#555;border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px;">👤</div>${row.manager}</td>
+                    <td style="font-weight: 600; color:var(--vt-text-dim);">${row.team}</td>
+                    <td style="text-align: right; font-weight: 700;">
+                        ${activeRankingTab === 'value' ? `${row.val.toFixed(1)}M` : `${row.pts.toFixed(1)}`}
+                    </td></tr>`;
+            });
+            table.innerHTML = html + "</tbody>";
+        }
+
+        function switchRankings(tabKey) {
+            activeRankingTab = tabKey; renderRankingTable();
+            document.querySelectorAll(".rank-tab").forEach(tab => {
+                const inner = tab.innerText.toLowerCase();
+                tab.classList.toggle("active", (tabKey === 'general' && inner.includes('global')) || (tabKey === 'weekly' && inner.includes('jornada')) || (tabKey === 'value' && inner.includes('valor')));
+            });
+        }
+
+        function updateSquadStats() {
+            let squadVal = 0; for (let key in ROSTER_DATABASE) squadVal += ROSTER_DATABASE[key].val;
+            const hs = document.getElementById("header-squad-value"); if (hs) hs.innerText = `${squadVal.toFixed(1)}M €`;
+        }
+        function updateBudgetDisplays() {
+            const hb = document.getElementById("header-budget"); if (hb) hb.innerText = `${userBudget.toFixed(1)}M`;
+        }
+        function updateDashboard() {
+            if (!currentUser) return;
+            const ptsEl = document.getElementById("dash-pts");
+            let activePts = 0; for (let key in ROSTER_DATABASE) activePts += ROSTER_DATABASE[key].pts || 0;
+            if (ptsEl) ptsEl.textContent = `Pts ` + activePts.toFixed(0);
+            const sorted = GLOBAL_LEADERBOARD.general || GLOBAL_LEADERBOARD_FALLBACK.general;
+            const standRoot = document.getElementById("dash-standings");
+            if (standRoot) {
+                standRoot.innerHTML = `<table class="mini-table" style="margin-top:10px;">` + sorted.slice(0, 3).map((u, i) => {
+                    return `<tr style="${u.current ? 'background: rgba(0,240,255,0.1);' : ''}">
+                        <td>${i + 1}. 👤 ${u.manager}</td>
+                        <td style="text-align:right; font-weight:700;">${u.pts.toFixed(0)} pts</td>
+                    </tr>`;
+                }).join("") + `</table>`;
+            }
+        }
+
+        function showNotification(message, type = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div"); toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '💡'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add("show"), 10);
+            setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, 3800);
+        }
+
+        function simulateMatchday(type) { showNotification("Simulación completada. Datos actualizados.", "success"); }
+    </script>
+</body>
+</html>
