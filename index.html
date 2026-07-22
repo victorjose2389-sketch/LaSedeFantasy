@@ -786,7 +786,7 @@
                 </div>
                 <div class="ql-budget-display">
                     <div class="ql-budget-label">Presupuesto</div>
-                    <div class="ql-budget-value" id="header-budget">100.0M</div>
+                    <div class="ql-budget-value" id="header-budget">125.0M</div>
                 </div>
                 <div class="ql-user-profile" onclick="logoutUser()">
                     <div class="ql-avatar" id="header-avatar">QU</div>
@@ -1043,7 +1043,7 @@
         let GLOBAL_LEADERBOARD = {};
         const MAX_SQUAD_SIZE = 16;
         const STARTER_COUNT = 11;
-        let userBudget = 100.0;
+        let userBudget = 125.0;
         let currentUser = null;
         let activeRankingTab = "general";
         let selectedPitchSlotKey = null;
@@ -1077,7 +1077,7 @@
                 localStorage.setItem("FE_PLAYER_DB_VERSION", PLAYER_DB_VERSION);
             }
             if (!localStorage.getItem("FE_MARKET")) localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
-            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "100.0");
+            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "125.0");
             if (!localStorage.getItem("FE_FORMATION")) localStorage.setItem("FE_FORMATION", "4-3-3");
             if (!localStorage.getItem("FE_LEADERBOARD")) localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD_FALLBACK));
             if (!localStorage.getItem("FE_CLUB_PROFILE")) localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile));
@@ -1091,7 +1091,7 @@
                 MARKET_DATABASE = JSON.parse(JSON.stringify(STAR_PLAYERS_POOL));
                 localStorage.setItem("FE_MARKET", JSON.stringify(MARKET_DATABASE));
             }
-            userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 100.0;
+            userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 125.0;
             currentFormation = localStorage.getItem("FE_FORMATION") || "4-3-3";
             try {
                 GLOBAL_LEADERBOARD = JSON.parse(localStorage.getItem("FE_LEADERBOARD")) || GLOBAL_LEADERBOARD_FALLBACK;
@@ -1257,7 +1257,7 @@
                     }
                     await db.collection("users").doc(cred.user.uid).set({
                         email: ADMIN_EMAIL, clubName: "Victor FC", role: "admin",
-                        budget: 100.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        budget: 125.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                     currentUser = { uid: cred.user.uid, email: ADMIN_EMAIL, role: "admin", clubName: "Victor FC" };
                 } else {
@@ -1269,7 +1269,7 @@
                             const d = doc.data();
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
-                        userBudget = d.budget || 100.0;
+                        userBudget = d.budget || 125.0;
                         currentFormation = d.formation || "4-3-3";
                         if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
@@ -1280,7 +1280,7 @@
                     } else {
                         await db.collection("users").doc(cred.user.uid).set({
                             email: cred.user.email, clubName: currentUser.clubName, role: "user",
-                            budget: 100.0, formation: "4-3-3",
+                            budget: 125.0, formation: "4-3-3",
                             clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
                             transferHistory: [], weeklyHistory: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1320,7 +1320,7 @@
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 await db.collection("users").doc(cred.user.uid).set({
                     email: email, clubName: club, role: "user",
-                    budget: 100.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    budget: 125.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 currentUser = { uid: cred.user.uid, email: email, role: "user", clubName: club };
                 localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
@@ -1384,7 +1384,7 @@
                         const d = doc.data();
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
-                        userBudget = d.budget || 100.0;
+                        userBudget = d.budget || 125.0;
                         currentFormation = d.formation || "4-3-3";
                         if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
@@ -1395,7 +1395,7 @@
                     } else {
                         await db.collection("users").doc(user.uid).set({
                             email: user.email, clubName: currentUser.clubName, role: "user",
-                            budget: 100.0, formation: "4-3-3",
+                            budget: 125.0, formation: "4-3-3",
                             clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
                             transferHistory: [], weeklyHistory: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1445,7 +1445,7 @@
                             const d = doc.data();
                             currentUser.role = d.role || "user";
                             currentUser.clubName = d.clubName || currentUser.clubName;
-                            userBudget = d.budget || 100.0;
+                            userBudget = d.budget || 125.0;
                             currentFormation = d.formation || "4-3-3";
                             if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
                             if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
