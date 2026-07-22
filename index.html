@@ -399,6 +399,241 @@
         }
         .toast.show { transform: translateX(0); }
         .toast.error { border-color: var(--color-red); }
+
+        /* ===== CLUB PROFILE ===== */
+        .profile-hero {
+            background: linear-gradient(135deg, rgba(9,21,46,0.9), rgba(3,11,26,0.95));
+            border: 1px solid rgba(0,240,255,0.2); border-radius: 20px;
+            padding: 32px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 28px;
+            position: relative; overflow: hidden;
+        }
+        .profile-hero::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:2px;
+            background: linear-gradient(90deg, transparent, var(--vt-neon-cyan), var(--vt-neon-purple), transparent);
+        }
+        .profile-hero::after {
+            content:''; position:absolute; top:-40%; right:-5%; width:200px; height:200px;
+            background: radial-gradient(circle, rgba(0,240,255,0.08), transparent 70%);
+        }
+        .profile-avatar-wrap {
+            position: relative; flex-shrink: 0; cursor: pointer;
+        }
+        .profile-avatar-large {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--vt-neon-purple), var(--vt-neon-cyan));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 900; color: #fff;
+            border: 3px solid rgba(0,240,255,0.4);
+            box-shadow: 0 0 30px rgba(0,240,255,0.25);
+        }
+        .profile-avatar-edit {
+            position: absolute; bottom: 0; right: 0;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--vt-neon-purple); border: 2px solid #0a192f;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #fff; transition: transform 0.2s;
+        }
+        .profile-avatar-wrap:hover .profile-avatar-edit { transform: scale(1.15); }
+        .profile-info h2 {
+            font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800;
+            background: linear-gradient(90deg, #fff, var(--vt-neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .profile-info .profile-sub {
+            font-size: 13px; color: var(--vt-text-dim); margin-bottom: 8px;
+        }
+        .profile-info .profile-meta {
+            display: flex; gap: 16px; font-size: 11px; color: var(--vt-text-dim);
+        }
+        .profile-info .profile-meta span { display: flex; align-items: center; gap: 4px; }
+        .profile-edit-btn {
+            margin-left: auto; align-self: flex-start;
+            padding: 8px 18px; border-radius: 20px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+            color: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .profile-edit-btn:hover { background: rgba(0,240,255,0.1); border-color: var(--vt-neon-cyan); color: var(--vt-neon-cyan); }
+
+        .profile-finance-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;
+        }
+        .finance-card {
+            background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 20px; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .finance-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:1px;
+            background: linear-gradient(90deg, transparent, rgba(0,240,255,0.3), transparent);
+        }
+        .finance-card .fc-icon {
+            font-size: 22px; margin-bottom: 8px;
+        }
+        .finance-card .fc-label {
+            font-size: 10px; color: var(--vt-text-dim); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 6px;
+        }
+        .finance-card .fc-value {
+            font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800;
+            color: var(--vt-neon-cyan);
+        }
+        .finance-card .fc-value.gold { color: var(--color-gold); }
+        .finance-card .fc-value.emerald { color: var(--color-emerald); }
+        .finance-card .fc-value.purple { color: var(--vt-neon-purple); }
+        .finance-card .fc-sub {
+            font-size: 11px; color: var(--vt-text-dim); margin-top: 4px;
+        }
+
+        .profile-section-title {
+            font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800;
+            margin-bottom: 16px; padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .squad-mini-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px; margin-bottom: 24px;
+        }
+        .squad-mini-card {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 10px; text-align: center;
+            transition: all 0.2s; cursor: pointer;
+        }
+        .squad-mini-card:hover { border-color: var(--vt-neon-cyan); transform: translateY(-2px); }
+        .squad-mini-card .smc-rating {
+            font-family: 'Outfit'; font-size: 18px; font-weight: 800; color: var(--vt-neon-cyan);
+        }
+        .squad-mini-card .smc-name {
+            font-size: 11px; font-weight: 600; margin: 4px 0 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .squad-mini-card .smc-pos {
+            font-size: 9px; color: var(--vt-text-dim);
+        }
+        .squad-mini-card .smc-pts {
+            font-size: 10px; color: var(--color-emerald); font-weight: 600; margin-top: 4px;
+        }
+        .squad-mini-card.bench-card { border-color: rgba(251,191,36,0.25); }
+        .squad-mini-card.bench-card .smc-rating { color: var(--color-gold); }
+        .squad-mini-card.empty-card { opacity: 0.35; border-style: dashed; }
+
+        .transfer-log {
+            max-height: 320px; overflow-y: auto; margin-bottom: 24px;
+        }
+        .transfer-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.15s;
+        }
+        .transfer-row:hover { background: rgba(255,255,255,0.02); }
+        .transfer-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .transfer-icon.buy { background: rgba(239,68,68,0.15); }
+        .transfer-icon.sell { background: rgba(0,255,135,0.15); }
+        .transfer-details { flex: 1; min-width: 0; }
+        .transfer-details .td-name { font-size: 13px; font-weight: 600; }
+        .transfer-details .td-date { font-size: 10px; color: var(--vt-text-dim); }
+        .transfer-amount {
+            font-family: 'Outfit'; font-size: 14px; font-weight: 700; flex-shrink: 0;
+        }
+        .transfer-amount.spent { color: var(--color-red); }
+        .transfer-amount.received { color: var(--color-emerald); }
+
+        .analytics-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;
+        }
+        .analytics-card {
+            background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 20px; text-align: center;
+        }
+        .analytics-card .ac-label {
+            font-size: 10px; color: var(--vt-text-dim); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 8px;
+        }
+        .analytics-card .ac-value {
+            font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800;
+        }
+        .analytics-card .ac-sub {
+            font-size: 11px; color: var(--vt-text-dim); margin-top: 4px;
+        }
+        .analytics-card .ac-value.cyan { color: var(--vt-neon-cyan); }
+        .analytics-card .ac-value.gold { color: var(--color-gold); }
+        .analytics-card .ac-value.emerald { color: var(--color-emerald); }
+
+        .week-chart-container {
+            background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 20px; margin-bottom: 24px;
+        }
+        .week-chart-bars {
+            display: flex; align-items: flex-end; gap: 8px;
+            height: 140px; padding-top: 10px;
+        }
+        .week-bar-col {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .week-bar {
+            width: 100%; border-radius: 4px 4px 0 0;
+            background: linear-gradient(180deg, var(--vt-neon-cyan), rgba(0,240,255,0.3));
+            transition: height 0.4s ease;
+        }
+        .week-bar-label { font-size: 9px; color: var(--vt-text-dim); }
+        .week-bar-pts { font-size: 10px; font-weight: 700; color: var(--vt-neon-cyan); }
+
+        .profile-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            z-index: 2000; display: flex; align-items: center; justify-content: center;
+        }
+        .profile-modal {
+            background: rgba(9,21,46,0.95); border: 1px solid rgba(0,240,255,0.3);
+            border-radius: 16px; padding: 32px; width: 90%; max-width: 420px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 50px rgba(0,240,255,0.15);
+        }
+        .profile-modal h3 {
+            font-family: 'Outfit'; font-size: 18px; font-weight: 800; margin-bottom: 20px;
+            text-align: center;
+        }
+        .profile-modal .pm-field { margin-bottom: 14px; }
+        .profile-modal .pm-field label {
+            display: block; font-size: 11px; color: var(--vt-text-dim);
+            margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .profile-modal .pm-field input {
+            width: 100%; background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(0,240,255,0.3); border-radius: 8px;
+            padding: 12px; color: #fff; font-size: 13px;
+        }
+        .profile-modal .pm-field input:focus { border-color: var(--vt-neon-cyan); }
+        .avatar-picker {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;
+        }
+        .avatar-option {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .avatar-option:hover { border-color: var(--vt-neon-cyan); transform: scale(1.1); }
+        .avatar-option.selected { border-color: var(--vt-neon-cyan); box-shadow: 0 0 15px var(--vt-neon-cyan-glow); }
+
+        @media (max-width: 900px) {
+            .profile-finance-grid { grid-template-columns: repeat(2, 1fr); }
+            .analytics-grid { grid-template-columns: 1fr; }
+            .profile-hero { flex-direction: column; text-align: center; }
+            .profile-info .profile-meta { justify-content: center; }
+            .profile-edit-btn { margin-left: 0; align-self: center; }
+        }
+        @media (max-width: 600px) {
+            .profile-finance-grid { grid-template-columns: 1fr 1fr; }
+            .squad-mini-grid { grid-template-columns: repeat(3, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -511,6 +746,9 @@
                 <div class="ql-sidebar-item" onclick="navigateTo('market')" data-target="market">
                     <span class="ql-sidebar-icon">💸</span> Fichajes
                 </div>
+                <div class="ql-sidebar-item" onclick="navigateTo('club')" data-target="club">
+                    <span class="ql-sidebar-icon">🏟️</span> Mi Club
+                </div>
 
                 <div class="ql-sidebar-divider"></div>
                 <div class="ql-sidebar-label">Competencia</div>
@@ -618,6 +856,11 @@
                         <div id="dash-standings"></div>
                     </div>
                 </div>
+            </div>
+
+            <!-- ===== MI CLUB / PERFIL ===== -->
+            <div id="view-club" class="view-content">
+                <div id="club-profile-root"></div>
             </div>
 
             <!-- ===== ALINEACIÓN ===== -->
@@ -794,10 +1037,21 @@
         let ROSTER_DATABASE = {};
         let MARKET_DATABASE = [];
         let GLOBAL_LEADERBOARD = {};
-        let userBudget = 25.0;
+        const MAX_SQUAD_SIZE = 16;
+        const STARTER_COUNT = 11;
+        let userBudget = 100.0;
         let currentUser = null;
         let activeRankingTab = "general";
         let selectedPitchSlotKey = null;
+
+        let clubProfile = {
+            teamName: "",
+            managerName: "",
+            owner: "",
+            avatar: null
+        };
+        let transferHistory = [];
+        let weeklyHistory = [];
 
         const FORMATIONS = {
             "4-3-3": { gk: 1, df: 4, mf: 3, fw: 3, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","fw-pos-1","fw-pos-2","fw-pos-3"] },
@@ -805,7 +1059,7 @@
             "3-5-2": { gk: 1, df: 3, mf: 5, fw: 2, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1","fw-pos-2"] },
             "4-2-3-1": { gk: 1, df: 4, mf: 5, fw: 1, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1"] }
         };
-        const ROSTER_SLOTS = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","fw2","fw3"];
+        const ROSTER_SLOTS = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","fw2","fw3","bench1","bench2","bench3","bench4","bench5"];
         let currentFormation = "4-3-3";
         let marketPage = 1;
         const MARKET_PAGE_SIZE = 10;
@@ -819,9 +1073,12 @@
                 localStorage.setItem("FE_PLAYER_DB_VERSION", PLAYER_DB_VERSION);
             }
             if (!localStorage.getItem("FE_MARKET")) localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
-            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "25.0");
+            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "100.0");
             if (!localStorage.getItem("FE_FORMATION")) localStorage.setItem("FE_FORMATION", "4-3-3");
             if (!localStorage.getItem("FE_LEADERBOARD")) localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD_FALLBACK));
+            if (!localStorage.getItem("FE_CLUB_PROFILE")) localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile));
+            if (!localStorage.getItem("FE_TRANSFER_HISTORY")) localStorage.setItem("FE_TRANSFER_HISTORY", "[]");
+            if (!localStorage.getItem("FE_WEEKLY_HISTORY")) localStorage.setItem("FE_WEEKLY_HISTORY", "[]");
 
             try {
                 MARKET_DATABASE = JSON.parse(localStorage.getItem("FE_MARKET"));
@@ -830,11 +1087,15 @@
                 MARKET_DATABASE = JSON.parse(JSON.stringify(STAR_PLAYERS_POOL));
                 localStorage.setItem("FE_MARKET", JSON.stringify(MARKET_DATABASE));
             }
-            userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 25.0;
+            userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 100.0;
             currentFormation = localStorage.getItem("FE_FORMATION") || "4-3-3";
             try {
                 GLOBAL_LEADERBOARD = JSON.parse(localStorage.getItem("FE_LEADERBOARD")) || GLOBAL_LEADERBOARD_FALLBACK;
             } catch(e) { GLOBAL_LEADERBOARD = GLOBAL_LEADERBOARD_FALLBACK; }
+
+            try { clubProfile = JSON.parse(localStorage.getItem("FE_CLUB_PROFILE")) || clubProfile; } catch(e) {}
+            try { transferHistory = JSON.parse(localStorage.getItem("FE_TRANSFER_HISTORY")) || []; } catch(e) {}
+            try { weeklyHistory = JSON.parse(localStorage.getItem("FE_WEEKLY_HISTORY")) || []; } catch(e) {}
 
             const storedRoster = localStorage.getItem("FE_ROSTER");
             if (storedRoster) {
@@ -851,7 +1112,12 @@
                     mf3: { id: "p261", name: "Bellingham",  teamId: "rma", pos: "MF", rating: 9.1, val: 123.0, pts: 132, ptsUcl: 72, ptsLiga: 60, cap: "" },
                     fw1: { id: "p124", name: "L. Yamal",    teamId: "bar", pos: "FW", rating: 8.7, val: 215.0, pts: 104, ptsUcl: 54, ptsLiga: 50, cap: "" },
                     fw2: { id: "p223", name: "Haaland",     teamId: "mci", pos: "FW", rating: 9.2, val: 218.0, pts: 140, ptsUcl: 85, ptsLiga: 55, cap: "" },
-                    fw3: { id: "p255", name: "Mbappé",      teamId: "rma", pos: "FW", rating: 9.4, val: 191.0, pts: 145, ptsUcl: 90, ptsLiga: 55, cap: "C" }
+                    fw3: { id: "p255", name: "Mbappé",      teamId: "rma", pos: "FW", rating: 9.4, val: 191.0, pts: 145, ptsUcl: 90, ptsLiga: 55, cap: "C" },
+                    bench1: { id: "p60",  name: "Donnarumma", teamId: "psg", pos: "GK", rating: 7.8, val: 5.0, pts: 42, ptsUcl: 20, ptsLiga: 22, cap: "" },
+                    bench2: { id: "p95",  name: "Rüdiger",    teamId: "rma", pos: "DF", rating: 7.2, val: 4.5, pts: 38, ptsUcl: 18, ptsLiga: 20, cap: "" },
+                    bench3: { id: "p190", name: "Koke",       teamId: "atl", pos: "MF", rating: 6.8, val: 3.5, pts: 30, ptsUcl: 15, ptsLiga: 15, cap: "" },
+                    bench4: { id: "p200", name: "Osimhen",    teamId: "gal", pos: "FW", rating: 7.5, val: 6.0, pts: 48, ptsUcl: 22, ptsLiga: 26, cap: "" },
+                    bench5: { id: "p150", name: "Bernardo S.", teamId: "bar", pos: "MF", rating: 7.3, val: 5.5, pts: 40, ptsUcl: 18, ptsLiga: 22, cap: "" }
                 };
                 saveRoster();
             }
@@ -892,13 +1158,94 @@
         function saveBudget() { localStorage.setItem("FE_BUDGET", userBudget.toFixed(1)); saveUserDataToFirestore(); }
         function saveFormation() { localStorage.setItem("FE_FORMATION", currentFormation); saveUserDataToFirestore(); }
         function saveLeaderboard() { localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD)); }
+        function saveClubProfile() { localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); saveUserDataToFirestore(); }
+        function saveTransferHistory() { localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); saveUserDataToFirestore(); }
+        function saveWeeklyHistory() { localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); saveUserDataToFirestore(); }
+
+        function logTransfer(type, playerObj, amount) {
+            transferHistory.unshift({
+                type: type,
+                playerId: playerObj.id,
+                playerName: playerObj.name,
+                pos: playerObj.pos,
+                amount: parseFloat(amount.toFixed(1)),
+                timestamp: new Date().toISOString()
+            });
+            if (transferHistory.length > 100) transferHistory = transferHistory.slice(0, 100);
+            saveTransferHistory();
+        }
+
+        function logWeeklyPoints() {
+            const gw = weeklyHistory.length + 1;
+            let totalPts = 0;
+            for (let i = 0; i < STARTER_COUNT; i++) {
+                const key = ROSTER_SLOTS[i];
+                if (ROSTER_DATABASE[key]) totalPts += ROSTER_DATABASE[key].pts || 0;
+            }
+            weeklyHistory.push({ gw: gw, pts: totalPts });
+            saveWeeklyHistory();
+        }
+
+        function getClubPatrimony() {
+            let squadVal = 0;
+            for (let key in ROSTER_DATABASE) {
+                if (ROSTER_DATABASE[key]) squadVal += ROSTER_DATABASE[key].val || 0;
+            }
+            return userBudget + squadVal;
+        }
+
+        function getSquadValue() {
+            let val = 0;
+            for (let key in ROSTER_DATABASE) {
+                if (ROSTER_DATABASE[key]) val += ROSTER_DATABASE[key].val || 0;
+            }
+            return val;
+        }
+
+        function getTotalPoints() {
+            let pts = 0;
+            for (let key in ROSTER_DATABASE) {
+                if (ROSTER_DATABASE[key]) pts += ROSTER_DATABASE[key].pts || 0;
+            }
+            return pts;
+        }
+
+        function getClubMVP() {
+            let best = null, bestPts = -1;
+            for (let key in ROSTER_DATABASE) {
+                const p = ROSTER_DATABASE[key];
+                if (p && (p.pts || 0) > bestPts) { bestPts = p.pts || 0; best = p; }
+            }
+            return best;
+        }
+
+        function getMostUsedFormation() {
+            const counts = {};
+            for (const f in FORMATIONS) counts[f] = 0;
+            const stored = localStorage.getItem("FE_FORMATION_HISTORY");
+            if (stored) {
+                try { JSON.parse(stored).forEach(f => { if (counts[f] !== undefined) counts[f]++; }); } catch(e) {}
+            }
+            if (counts[currentFormation] !== undefined) counts[currentFormation]++;
+            let best = "4-3-3", bestCount = 0;
+            for (const f in counts) { if (counts[f] > bestCount) { bestCount = counts[f]; best = f; } }
+            return best;
+        }
+
+        function trackFormationUse() {
+            const arr = JSON.parse(localStorage.getItem("FE_FORMATION_HISTORY") || "[]");
+            arr.push(currentFormation);
+            if (arr.length > 200) arr.splice(0, arr.length - 200);
+            localStorage.setItem("FE_FORMATION_HISTORY", JSON.stringify(arr));
+        }
 
         function saveUserDataToFirestore() {
             if (!currentUser || !currentUser.uid) return;
             try {
                 db.collection("users").doc(currentUser.uid).set({
                     email: currentUser.email, clubName: currentUser.clubName, role: currentUser.role || "user",
-                    budget: userBudget, formation: currentFormation, roster: ROSTER_DATABASE
+                    budget: userBudget, formation: currentFormation, roster: ROSTER_DATABASE,
+                    clubProfile: clubProfile, transferHistory: transferHistory, weeklyHistory: weeklyHistory
                 }, { merge: true });
             } catch(e) { console.warn("Firestore save:", e); }
         }
@@ -926,7 +1273,7 @@
                     }
                     await db.collection("users").doc(cred.user.uid).set({
                         email: ADMIN_EMAIL, clubName: "Victor FC", role: "admin",
-                        budget: 25.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        budget: 100.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                     currentUser = { uid: cred.user.uid, email: ADMIN_EMAIL, role: "admin", clubName: "Victor FC" };
                 } else {
@@ -936,18 +1283,24 @@
                         const doc = await db.collection("users").doc(cred.user.uid).get();
                         if (doc.exists) {
                             const d = doc.data();
-                            currentUser.role = d.role || "user";
-                            currentUser.clubName = d.clubName || currentUser.clubName;
-                            userBudget = d.budget || 25.0;
-                            currentFormation = d.formation || "4-3-3";
-                            if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
-                            localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
-                            localStorage.setItem("FE_FORMATION", currentFormation);
-                        } else {
-                            await db.collection("users").doc(cred.user.uid).set({
-                                email: cred.user.email, clubName: currentUser.clubName, role: "user",
-                                budget: 25.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
+                        currentUser.role = d.role || "user";
+                        currentUser.clubName = d.clubName || currentUser.clubName;
+                        userBudget = d.budget || 100.0;
+                        currentFormation = d.formation || "4-3-3";
+                        if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
+                        if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
+                        if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
+                        if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
+                        localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
+                        localStorage.setItem("FE_FORMATION", currentFormation);
+                    } else {
+                        await db.collection("users").doc(cred.user.uid).set({
+                            email: cred.user.email, clubName: currentUser.clubName, role: "user",
+                            budget: 100.0, formation: "4-3-3",
+                            clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
+                            transferHistory: [], weeklyHistory: [],
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
                         }
                     } catch(fsErr) { console.warn("Firestore read error:", fsErr); }
                 }
@@ -983,7 +1336,7 @@
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 await db.collection("users").doc(cred.user.uid).set({
                     email: email, clubName: club, role: "user",
-                    budget: 25.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    budget: 100.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 currentUser = { uid: cred.user.uid, email: email, role: "user", clubName: club };
                 localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
@@ -1047,15 +1400,21 @@
                         const d = doc.data();
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
-                        userBudget = d.budget || 25.0;
+                        userBudget = d.budget || 100.0;
                         currentFormation = d.formation || "4-3-3";
                         if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
+                        if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
+                        if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
+                        if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
                         localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
                         localStorage.setItem("FE_FORMATION", currentFormation);
                     } else {
                         await db.collection("users").doc(user.uid).set({
                             email: user.email, clubName: currentUser.clubName, role: "user",
-                            budget: 25.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            budget: 100.0, formation: "4-3-3",
+                            clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
+                            transferHistory: [], weeklyHistory: [],
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     }
                 } catch(fsErr) { console.warn("Firestore read error:", fsErr); }
@@ -1100,9 +1459,13 @@
                             const d = doc.data();
                             currentUser.role = d.role || "user";
                             currentUser.clubName = d.clubName || currentUser.clubName;
-                            userBudget = d.budget || 25.0;
+                            userBudget = d.budget || 100.0;
                             currentFormation = d.formation || "4-3-3";
                             if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
+                            if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
+                            if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
+                            if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
+                            if (!clubProfile.teamName && currentUser.clubName) { clubProfile.teamName = currentUser.clubName; saveClubProfile(); }
                             localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
                             localStorage.setItem("FE_FORMATION", currentFormation);
                         }
@@ -1131,13 +1494,15 @@
         function updateHeaderUser() {
             if (!currentUser) return;
             const initials = currentUser.clubName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
-            document.getElementById("header-avatar").textContent = initials;
-            document.getElementById("header-club-name").textContent = currentUser.clubName;
+            const avatarEl = document.getElementById("header-avatar");
+            if (clubProfile.avatar) { avatarEl.textContent = clubProfile.avatar; }
+            else { avatarEl.textContent = initials; }
+            document.getElementById("header-club-name").textContent = clubProfile.teamName || currentUser.clubName;
             document.getElementById("header-user-email").textContent = currentUser.email;
             const sideAvatar = document.getElementById("sidebar-avatar");
             const sideName = document.getElementById("sidebar-club-name");
-            if (sideAvatar) sideAvatar.textContent = initials;
-            if (sideName) sideName.textContent = currentUser.clubName;
+            if (sideAvatar) { sideAvatar.textContent = clubProfile.avatar || initials; }
+            if (sideName) sideName.textContent = clubProfile.teamName || currentUser.clubName;
         }
 
         function navigateTo(targetId) {
@@ -1151,9 +1516,10 @@
             if (targetId === "leaderboard") renderRankingTable();
             if (targetId === "dashboard") updateDashboard();
             if (targetId === "admin") loadAdminUsers();
+            if (targetId === "club") renderClubProfile();
         }
 
-        function setFormation(f) { currentFormation = f; saveFormation(); renderTacticalBoard(); renderBench(); showNotification(`Táctica cambiada a ${f}.`, "info"); }
+        function setFormation(f) { currentFormation = f; saveFormation(); trackFormationUse(); renderTacticalBoard(); renderBench(); showNotification(`Táctica cambiada a ${f}.`, "info"); }
 
         function renderTacticalBoard() {
             const root = document.getElementById("positions-root");
@@ -1324,6 +1690,7 @@
             const player = MARKET_DATABASE[playerIndex];
             if (userBudget < player.val) { showNotification("Presupuesto insuficiente.", "error"); return; }
             userBudget -= player.val; player.owner = currentUser ? currentUser.clubName : "User"; player.status = "ocupado";
+            logTransfer("buy", player, player.val);
             saveMarket(); saveBudget(); updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar();
             showNotification(`¡Fichaje oficializado! ${player.name} se une a tu plantilla.`, "success");
         }
@@ -1414,6 +1781,7 @@
                 p.pts = (p.pts || 0) + Math.max(0, bonus);
             });
             saveRoster(); saveMarket(); saveUserDataToFirestore();
+            logWeeklyPoints();
             resultEl.innerHTML = `<span style="color:var(--vt-neon-cyan);">✓ Simulación completada.</span> ${updated} jugadores actualizados (${type}).`;
             updateDashboard(); updateSquadStats();
             showNotification(`Jornada de ${type} simulada. ${updated} jugadores actualizados.`, "success");
@@ -1445,6 +1813,9 @@
                 budget: userBudget,
                 formation: currentFormation,
                 leaderboard: GLOBAL_LEADERBOARD,
+                clubProfile: clubProfile,
+                transferHistory: transferHistory,
+                weeklyHistory: weeklyHistory,
                 exportDate: new Date().toISOString()
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -1503,6 +1874,297 @@
             } catch(e) {
                 showNotification("Error al actualizar rol: " + e.message, "error");
             }
+        }
+
+        function renderClubProfile() {
+            const root = document.getElementById("club-profile-root");
+            if (!root) return;
+
+            const teamName = clubProfile.teamName || (currentUser ? currentUser.clubName : "Mi Equipo");
+            const managerName = clubProfile.managerName || (currentUser ? currentUser.email.split("@")[0] : "");
+            const owner = clubProfile.owner || "";
+            const avatarEmoji = clubProfile.avatar || "⚽";
+            const initials = teamName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+            const budget = userBudget;
+            const squadVal = getSquadValue();
+            const patrimony = getClubPatrimony();
+            const totalPts = getTotalPoints();
+            const mvp = getClubMVP();
+            const topFormation = getMostUsedFormation();
+
+            let posInGeneral = "-";
+            const sorted = GLOBAL_LEADERBOARD.general || GLOBAL_LEADERBOARD_FALLBACK.general;
+            for (let i = 0; i < sorted.length; i++) {
+                if (sorted[i].current) { posInGeneral = "#" + (i + 1); break; }
+            }
+
+            const starterSlots = ROSTER_SLOTS.slice(0, STARTER_COUNT);
+            const benchSlots = ROSTER_SLOTS.slice(STARTER_COUNT);
+
+            root.innerHTML = `
+                <div class="profile-hero">
+                    <div class="profile-avatar-wrap" onclick="openProfileEditor()">
+                        <div class="profile-avatar-large">${avatarEmoji !== "⚽" ? avatarEmoji : initials}</div>
+                        <div class="profile-avatar-edit">✏</div>
+                    </div>
+                    <div class="profile-info">
+                        <h2>${teamName}</h2>
+                        <div class="profile-sub">${managerName ? "Mánager: " + managerName : ""}${owner ? " · Propietario: " + owner : ""}</div>
+                        <div class="profile-meta">
+                            <span>📧 ${currentUser ? currentUser.email : ""}</span>
+                            <span>🏆 Posición: ${posInGeneral}</span>
+                            <span>📅 ${currentFormation}</span>
+                        </div>
+                    </div>
+                    <button class="profile-edit-btn" onclick="openProfileEditor()">✏ Editar Perfil</button>
+                </div>
+
+                <div class="profile-section-title">💰 Resumen Financiero</div>
+                <div class="profile-finance-grid">
+                    <div class="finance-card">
+                        <div class="fc-icon">💵</div>
+                        <div class="fc-label">Presupuesto</div>
+                        <div class="fc-value cyan">${budget.toFixed(1)}M €</div>
+                        <div class="fc-sub">Disponible para fichajes</div>
+                    </div>
+                    <div class="finance-card">
+                        <div class="fc-icon">👥</div>
+                        <div class="fc-label">Valor Plantilla</div>
+                        <div class="fc-value gold">${squadVal.toFixed(1)}M €</div>
+                        <div class="fc-sub">${Object.keys(ROSTER_DATABASE).length} / ${MAX_SQUAD_SIZE} jugadores</div>
+                    </div>
+                    <div class="finance-card">
+                        <div class="fc-icon">🏦</div>
+                        <div class="fc-label">Patrimonio Club</div>
+                        <div class="fc-value emerald">${patrimony.toFixed(1)}M €</div>
+                        <div class="fc-sub">Presupuesto + Valor</div>
+                    </div>
+                    <div class="finance-card">
+                        <div class="fc-icon">⭐</div>
+                        <div class="fc-label">Puntos Totales</div>
+                        <div class="fc-value purple">${totalPts}</div>
+                        <div class="fc-sub">Posición: ${posInGeneral}</div>
+                    </div>
+                </div>
+
+                <div class="profile-section-title">⚽ Gestión de Plantilla</div>
+                <div style="display:flex; gap:10px; margin-bottom:12px; font-size:12px; color:var(--vt-text-dim);">
+                    <span style="font-weight:700; color:var(--vt-neon-cyan);">Titulares (${STARTER_COUNT})</span>
+                    <span>|</span>
+                    <span style="font-weight:700; color:var(--color-gold);">Suplentes (${benchSlots.length})</span>
+                </div>
+                <div style="margin-bottom:6px; font-size:11px; color:var(--vt-text-dim); font-weight:600;">TITULARES</div>
+                <div class="squad-mini-grid" id="club-starters-grid"></div>
+                <div style="margin-bottom:6px; font-size:11px; color:var(--color-gold); font-weight:600;">BANCO (Prioridad de autosustitución 1→5)</div>
+                <div class="squad-mini-grid" id="club-bench-grid"></div>
+
+                <div class="profile-section-title">📜 Historial de Mercado</div>
+                <div class="ql-card" style="padding:0; margin-bottom:24px;">
+                    <div class="transfer-log" id="club-transfer-log"></div>
+                </div>
+
+                <div class="profile-section-title">📊 Estadísticas del Club</div>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="ac-label">Jugador MVP</div>
+                        <div class="ac-value gold">${mvp ? mvp.name : "-"}</div>
+                        <div class="ac-sub">${mvp ? (mvp.pts || 0) + " pts · " + mvp.pos : "Sin datos"}</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="ac-label">Formación Más Usada</div>
+                        <div class="ac-value cyan">${topFormation}</div>
+                        <div class="ac-sub">Táctica principal del club</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="ac-label">Ratio Puntos / Millón</div>
+                        <div class="ac-value emerald">${squadVal > 0 ? (totalPts / squadVal).toFixed(2) : "0.00"}</div>
+                        <div class="ac-sub">Eficiencia de inversión</div>
+                    </div>
+                </div>
+
+                <div class="week-chart-container">
+                    <div style="font-size:14px; font-weight:700; margin-bottom:14px;">Rendimiento por Jornada</div>
+                    <div class="week-chart-bars" id="club-week-chart"></div>
+                </div>
+            `;
+
+            renderClubStarters();
+            renderClubBench();
+            renderTransferLog();
+            renderWeekChart();
+        }
+
+        function renderClubStarters() {
+            const grid = document.getElementById("club-starters-grid");
+            if (!grid) return;
+            grid.innerHTML = "";
+            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
+            for (let i = 0; i < formation.positions.length && i < STARTER_COUNT; i++) {
+                const key = ROSTER_SLOTS[i];
+                const p = ROSTER_DATABASE[key];
+                if (p) {
+                    grid.insertAdjacentHTML("beforeend", `
+                        <div class="squad-mini-card" onclick="openMarketPlayerProfile('${p.id}')">
+                            <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
+                            <div class="smc-name" title="${p.name}">${p.name}</div>
+                            <div class="smc-pos">${p.pos} · ${getTeamName(p.teamId)}</div>
+                            <div class="smc-pts">${p.pts || 0} pts</div>
+                        </div>
+                    `);
+                } else {
+                    grid.insertAdjacentHTML("beforeend", `
+                        <div class="squad-mini-card empty-card">
+                            <div class="smc-rating">-</div>
+                            <div class="smc-name">Vacío</div>
+                            <div class="smc-pos">${key.toUpperCase()}</div>
+                            <div class="smc-pts">0 pts</div>
+                        </div>
+                    `);
+                }
+            }
+        }
+
+        function renderClubBench() {
+            const grid = document.getElementById("club-bench-grid");
+            if (!grid) return;
+            grid.innerHTML = "";
+            const benchSlots = ROSTER_SLOTS.slice(STARTER_COUNT);
+            benchSlots.forEach((key, idx) => {
+                const p = ROSTER_DATABASE[key];
+                if (p) {
+                    grid.insertAdjacentHTML("beforeend", `
+                        <div class="squad-mini-card bench-card" onclick="openMarketPlayerProfile('${p.id}')">
+                            <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
+                            <div class="smc-name" title="${p.name}">${p.name}</div>
+                            <div class="smc-pos">#${idx + 1} · ${p.pos} · ${getTeamName(p.teamId)}</div>
+                            <div class="smc-pts">${p.pts || 0} pts</div>
+                        </div>
+                    `);
+                } else {
+                    grid.insertAdjacentHTML("beforeend", `
+                        <div class="squad-mini-card bench-card empty-card">
+                            <div class="smc-rating">-</div>
+                            <div class="smc-name">Vacío</div>
+                            <div class="smc-pos">#${idx + 1} · Banco</div>
+                            <div class="smc-pts">0 pts</div>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function renderTransferLog() {
+            const log = document.getElementById("club-transfer-log");
+            if (!log) return;
+            if (transferHistory.length === 0) {
+                log.innerHTML = `<div style="text-align:center; padding:30px; color:var(--vt-text-dim); font-size:13px;">Sin movimientos de mercado aún.</div>`;
+                return;
+            }
+            log.innerHTML = transferHistory.slice(0, 50).map(t => {
+                const isBuy = t.type === "buy";
+                const date = t.timestamp ? new Date(t.timestamp).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "";
+                return `
+                    <div class="transfer-row">
+                        <div class="transfer-icon ${isBuy ? 'buy' : 'sell'}">${isBuy ? '📥' : '📤'}</div>
+                        <div class="transfer-details">
+                            <div class="td-name">${t.playerName || "?"} <span style="font-size:10px; color:var(--vt-text-dim);">(${t.pos || "?"})</span></div>
+                            <div class="td-date">${isBuy ? 'Comprado' : 'Vendido'} · ${date}</div>
+                        </div>
+                        <div class="transfer-amount ${isBuy ? 'spent' : 'received'}">${isBuy ? '-' : '+'}${t.amount}M €</div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderWeekChart() {
+            const chart = document.getElementById("club-week-chart");
+            if (!chart) return;
+            const data = weeklyHistory.length > 0 ? weeklyHistory : [{ gw: 1, pts: 0 }];
+            const maxPts = Math.max(...data.map(d => d.pts), 1);
+            chart.innerHTML = data.slice(-12).map(d => {
+                const h = Math.max(8, (d.pts / maxPts) * 120);
+                return `
+                    <div class="week-bar-col">
+                        <div class="week-bar-pts">${d.pts}</div>
+                        <div class="week-bar" style="height:${h}px;"></div>
+                        <div class="week-bar-label">GW${d.gw}</div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        const AVATAR_OPTIONS = ["⚽","🏟️","👑","🔥","⚡","🎯","🦁","🦈","🦅","💎","🏆","🎮"];
+
+        function openProfileEditor() {
+            const overlay = document.createElement("div");
+            overlay.className = "profile-modal-overlay";
+            overlay.id = "profile-modal-overlay";
+            overlay.innerHTML = `
+                <div class="profile-modal">
+                    <h3>Editar Perfil del Club</h3>
+                    <div class="pm-field">
+                        <label>Nombre del Equipo</label>
+                        <input type="text" id="pm-team-name" value="${clubProfile.teamName || (currentUser ? currentUser.clubName : "")}" placeholder="Ej: Villegas FC">
+                    </div>
+                    <div class="pm-field">
+                        <label>Mánager / Entrenador</label>
+                        <input type="text" id="pm-manager" value="${clubProfile.managerName || ""}" placeholder="Ej: DT Víctor">
+                    </div>
+                    <div class="pm-field">
+                        <label>Propietario del Club</label>
+                        <input type="text" id="pm-owner" value="${clubProfile.owner || ""}" placeholder="Nombre real o usuario">
+                    </div>
+                    <div class="pm-field">
+                        <label>Escudo / Avatar del Club</label>
+                        <div class="avatar-picker" id="pm-avatar-picker">
+                            ${AVATAR_OPTIONS.map(e => `
+                                <div class="avatar-option ${clubProfile.avatar === e ? 'selected' : ''}" data-emoji="${e}" onclick="selectProfileAvatar('${e}')">${e}</div>
+                            `).join("")}
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="btn btn-glow" style="flex:1;" onclick="saveProfileEditor()">Guardar</button>
+                        <button class="btn btn-secondary" style="flex:1;" onclick="closeProfileEditor()">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener("click", (e) => { if (e.target === overlay) closeProfileEditor(); });
+        }
+
+        function selectProfileAvatar(emoji) {
+            document.querySelectorAll("#pm-avatar-picker .avatar-option").forEach(el => {
+                el.classList.toggle("selected", el.dataset.emoji === emoji);
+            });
+        }
+
+        function saveProfileEditor() {
+            const teamName = document.getElementById("pm-team-name").value.trim();
+            const managerName = document.getElementById("pm-manager").value.trim();
+            const owner = document.getElementById("pm-owner").value.trim();
+            const selectedEl = document.querySelector("#pm-avatar-picker .avatar-option.selected");
+            const avatar = selectedEl ? selectedEl.dataset.emoji : null;
+
+            if (!teamName) { showNotification("El nombre del equipo es obligatorio.", "error"); return; }
+
+            clubProfile.teamName = teamName;
+            clubProfile.managerName = managerName;
+            clubProfile.owner = owner;
+            clubProfile.avatar = avatar;
+
+            if (currentUser) currentUser.clubName = teamName;
+
+            saveClubProfile();
+            updateHeaderUser();
+            closeProfileEditor();
+            renderClubProfile();
+            showNotification("Perfil del club actualizado.", "success");
+        }
+
+        function closeProfileEditor() {
+            const overlay = document.getElementById("profile-modal-overlay");
+            if (overlay) overlay.remove();
         }
     </script>
 </body>
