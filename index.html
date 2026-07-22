@@ -1447,6 +1447,10 @@
                             currentUser.clubName = d.clubName || currentUser.clubName;
                             userBudget = d.budget || 125.0;
                             currentFormation = d.formation || "4-3-3";
+                            if (d.budgetVersion !== 2) {
+                                userBudget = 125.0;
+                                db.collection("users").doc(user.uid).update({ budget: 125.0, budgetVersion: 2 });
+                            }
                             if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
                             if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                             if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
