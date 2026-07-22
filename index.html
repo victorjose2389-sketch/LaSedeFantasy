@@ -1128,6 +1128,26 @@
             localStorage.setItem("FE_SQUAD_VERSION", "2");
             saveRoster();
         }
+        function loadRosterFromFirestoreData(d) {
+            const oldSlotKeys = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","fw2","fw3","bench1","bench2","bench3","bench4","bench5"];
+            const hasOldKeys = Object.keys(d.roster).some(k => oldSlotKeys.includes(k));
+            if (hasOldKeys) {
+                const players = [];
+                for (const k of oldSlotKeys) { if (d.roster[k]) players.push(d.roster[k]); }
+                const newRoster = {};
+                ALL_SLOT_KEYS.forEach(k => newRoster[k] = null);
+                const posOrder = { GK: 0, DF: 1, MF: 2, FW: 3 };
+                players.sort((a, b) => (posOrder[a.pos] || 0) - (posOrder[b.pos] || 0));
+                for (const p of players) { const slot = SLOT_DEFS.find(s => s.pos === p.pos && !newRoster[s.key]); if (slot) newRoster[slot.key] = p; }
+                ROSTER_DATABASE = newRoster;
+                localStorage.setItem("FE_ROSTER", JSON.stringify(newRoster));
+                localStorage.setItem("FE_SQUAD_VERSION", "2");
+                saveRoster();
+            } else {
+                ROSTER_DATABASE = d.roster;
+                localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster));
+            }
+        }
         let currentFormation = "4-3-3";
         let marketPage = 1;
         const MARKET_PAGE_SIZE = 10;
@@ -1336,7 +1356,7 @@
                         currentUser.clubName = d.clubName || currentUser.clubName;
                         userBudget = d.budget || 125.0;
                         currentFormation = d.formation || "4-3-3";
-                        if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
+                        if (d.roster) { loadRosterFromFirestoreData(d); }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                         if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                         if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
@@ -1451,7 +1471,7 @@
                         currentUser.clubName = d.clubName || currentUser.clubName;
                         userBudget = d.budget || 125.0;
                         currentFormation = d.formation || "4-3-3";
-                        if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
+                        if (d.roster) { loadRosterFromFirestoreData(d); }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                         if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                         if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
@@ -1516,7 +1536,7 @@
                                 userBudget = 125.0;
                                 db.collection("users").doc(user.uid).update({ budget: 125.0, budgetVersion: 2 });
                             }
-                            if (d.roster) { ROSTER_DATABASE = d.roster; localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster)); }
+                            if (d.roster) { loadRosterFromFirestoreData(d); }
                             if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                             if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                             if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
