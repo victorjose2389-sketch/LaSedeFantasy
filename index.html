@@ -1142,7 +1142,7 @@
                 ROSTER_DATABASE = newRoster;
                 localStorage.setItem("FE_ROSTER", JSON.stringify(newRoster));
                 localStorage.setItem("FE_SQUAD_VERSION", "2");
-                saveRoster();
+                try { db.collection("users").doc(currentUser.uid).update({ roster: newRoster }); } catch(e) { console.warn("Firestore roster cleanup:", e); }
             } else {
                 ROSTER_DATABASE = d.roster;
                 localStorage.setItem("FE_ROSTER", JSON.stringify(d.roster));
