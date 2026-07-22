@@ -1066,7 +1066,7 @@
         let _debounceTimer = null;
 
         function loadAppData() {
-            const PLAYER_DB_VERSION = "2.1";
+            const PLAYER_DB_VERSION = "3.0";
             const storedVersion = localStorage.getItem("FE_PLAYER_DB_VERSION");
             if (storedVersion !== PLAYER_DB_VERSION) {
                 localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
@@ -1102,22 +1102,22 @@
                 ROSTER_DATABASE = JSON.parse(storedRoster);
             } else {
                 ROSTER_DATABASE = {
-                    gk:  { id: "p282", name: "Courtois",   teamId: "rma", pos: "GK", rating: 8.9, val: 14.5, pts: 110, ptsUcl: 60, ptsLiga: 50, cap: "V" },
-                    df1: { id: "p71",  name: "Van Dijk",    teamId: "liv", pos: "DF", rating: 7.4, val: 15.5, pts: 51,  ptsUcl: 30, ptsLiga: 21, cap: "" },
-                    df2: { id: "p327", name: "Marquinhos",  teamId: "psg", pos: "DF", rating: 7.7, val: 27.0, pts: 53,  ptsUcl: 32, ptsLiga: 21, cap: "" },
-                    df3: { id: "p18",  name: "Saliba",      teamId: "ars", pos: "DF", rating: 8.5, val: 94.0, pts: 88,  ptsUcl: 48, ptsLiga: 40, cap: "" },
-                    df4: { id: "p325", name: "Hakimi",      teamId: "psg", pos: "DF", rating: 8.0, val: 82.0, pts: 90,  ptsUcl: 50, ptsLiga: 40, cap: "" },
-                    mf1: { id: "p126", name: "Pedri",       teamId: "bar", pos: "MF", rating: 8.1, val: 164.0, pts: 95,  ptsUcl: 45, ptsLiga: 50, cap: "" },
-                    mf2: { id: "p228", name: "Rodri",       teamId: "mci", pos: "MF", rating: 8.8, val: 45.0, pts: 120, ptsUcl: 70, ptsLiga: 50, cap: "" },
-                    mf3: { id: "p261", name: "Bellingham",  teamId: "rma", pos: "MF", rating: 9.1, val: 123.0, pts: 132, ptsUcl: 72, ptsLiga: 60, cap: "" },
-                    fw1: { id: "p124", name: "L. Yamal",    teamId: "bar", pos: "FW", rating: 8.7, val: 215.0, pts: 104, ptsUcl: 54, ptsLiga: 50, cap: "" },
-                    fw2: { id: "p223", name: "Haaland",     teamId: "mci", pos: "FW", rating: 9.2, val: 218.0, pts: 140, ptsUcl: 85, ptsLiga: 55, cap: "" },
-                    fw3: { id: "p255", name: "Mbappé",      teamId: "rma", pos: "FW", rating: 9.4, val: 191.0, pts: 145, ptsUcl: 90, ptsLiga: 55, cap: "C" },
-                    bench1: { id: "p60",  name: "Donnarumma", teamId: "psg", pos: "GK", rating: 7.8, val: 5.0, pts: 42, ptsUcl: 20, ptsLiga: 22, cap: "" },
-                    bench2: { id: "p95",  name: "Rüdiger",    teamId: "rma", pos: "DF", rating: 7.2, val: 4.5, pts: 38, ptsUcl: 18, ptsLiga: 20, cap: "" },
-                    bench3: { id: "p190", name: "Koke",       teamId: "atl", pos: "MF", rating: 6.8, val: 3.5, pts: 30, ptsUcl: 15, ptsLiga: 15, cap: "" },
-                    bench4: { id: "p200", name: "Osimhen",    teamId: "gal", pos: "FW", rating: 7.5, val: 6.0, pts: 48, ptsUcl: 22, ptsLiga: 26, cap: "" },
-                    bench5: { id: "p150", name: "Bernardo S.", teamId: "bar", pos: "MF", rating: 7.3, val: 5.5, pts: 40, ptsUcl: 18, ptsLiga: 22, cap: "" }
+                    gk:  { id: "p282", name: "Courtois",   teamId: "rma", pos: "GK", rating: 7.1, val: 3.0, pts: 110, ptsUcl: 60, ptsLiga: 50, cap: "V" },
+                    df1: { id: "p71",  name: "Van Dijk",    teamId: "liv", pos: "DF", rating: 7.4, val: 3.5, pts: 51,  ptsUcl: 30, ptsLiga: 21, cap: "" },
+                    df2: { id: "p327", name: "Marquinhos",  teamId: "psg", pos: "DF", rating: 7.7, val: 4.8, pts: 53,  ptsUcl: 32, ptsLiga: 21, cap: "" },
+                    df3: { id: "p18",  name: "Saliba",      teamId: "ars", pos: "DF", rating: 8.9, val: 11.5, pts: 88,  ptsUcl: 48, ptsLiga: 40, cap: "" },
+                    df4: { id: "p325", name: "Hakimi",      teamId: "psg", pos: "DF", rating: 8.6, val: 8.9, pts: 90,  ptsUcl: 50, ptsLiga: 40, cap: "" },
+                    mf1: { id: "p126", name: "Pedri",       teamId: "bar", pos: "MF", rating: 9.2, val: 12.7, pts: 95,  ptsUcl: 45, ptsLiga: 50, cap: "" },
+                    mf2: { id: "p228", name: "Rodri",       teamId: "mci", pos: "MF", rating: 8.0, val: 5.9, pts: 120, ptsUcl: 70, ptsLiga: 50, cap: "" },
+                    mf3: { id: "p261", name: "Bellingham",  teamId: "rma", pos: "MF", rating: 9.2, val: 12.7, pts: 132, ptsUcl: 72, ptsLiga: 60, cap: "" },
+                    fw1: { id: "p124", name: "L. Yamal",    teamId: "bar", pos: "FW", rating: 9.2, val: 12.7, pts: 104, ptsUcl: 54, ptsLiga: 50, cap: "" },
+                    fw2: { id: "p223", name: "Haaland",     teamId: "mci", pos: "FW", rating: 9.2, val: 12.7, pts: 140, ptsUcl: 85, ptsLiga: 55, cap: "" },
+                    fw3: { id: "p255", name: "Mbappé",      teamId: "rma", pos: "FW", rating: 9.2, val: 12.7, pts: 145, ptsUcl: 90, ptsLiga: 55, cap: "C" },
+                    bench1: { id: "p60",  name: "Donnarumma", teamId: "psg", pos: "GK", rating: 7.7, val: 4.8, pts: 42, ptsUcl: 20, ptsLiga: 22, cap: "" },
+                    bench2: { id: "p95",  name: "Rüdiger",    teamId: "rma", pos: "DF", rating: 6.5, val: 1.9, pts: 38, ptsUcl: 18, ptsLiga: 20, cap: "" },
+                    bench3: { id: "p190", name: "Koke",       teamId: "atl", pos: "MF", rating: 7.1, val: 3.0, pts: 30, ptsUcl: 15, ptsLiga: 15, cap: "" },
+                    bench4: { id: "p200", name: "Osimhen",    teamId: "gal", pos: "FW", rating: 7.1, val: 3.0, pts: 48, ptsUcl: 22, ptsLiga: 26, cap: "" },
+                    bench5: { id: "p150", name: "Bernardo S.", teamId: "bar", pos: "MF", rating: 8.6, val: 8.9, pts: 40, ptsUcl: 18, ptsLiga: 22, cap: "" }
                 };
                 saveRoster();
             }
@@ -1684,15 +1684,54 @@
         function openSidebar() { document.getElementById("detail-sidebar").classList.add("active"); document.getElementById("sidebar-overlay").classList.add("active"); }
         function closeSidebar() { document.getElementById("detail-sidebar").classList.remove("active"); document.getElementById("sidebar-overlay").classList.remove("active"); }
 
+        function getSquadSize() {
+            let count = 0;
+            for (let key of ROSTER_SLOTS) {
+                if (ROSTER_DATABASE[key]) count++;
+            }
+            return count;
+        }
+
+        function getNextAvailableSlot() {
+            for (let key of ROSTER_SLOTS) {
+                if (!ROSTER_DATABASE[key]) return key;
+            }
+            return null;
+        }
+
         function buyFreeAgent(playerId) {
             const playerIndex = MARKET_DATABASE.findIndex(p => p.id === playerId);
             if (playerIndex === -1) return;
             const player = MARKET_DATABASE[playerIndex];
-            if (userBudget < player.val) { showNotification("Presupuesto insuficiente.", "error"); return; }
-            userBudget -= player.val; player.owner = currentUser ? currentUser.clubName : "User"; player.status = "ocupado";
+
+            const squadSize = getSquadSize();
+            if (squadSize >= MAX_SQUAD_SIZE) {
+                showNotification(`Plantilla llena (${MAX_SQUAD_SIZE}/${MAX_SQUAD_SIZE}). Vende un jugador primero.`, "error");
+                return;
+            }
+            if (userBudget < player.val) {
+                showNotification(`Presupuesto insuficiente. Necesitas ${player.val.toFixed(1)}M y tienes ${userBudget.toFixed(1)}M.`, "error");
+                return;
+            }
+
+            const slot = getNextAvailableSlot();
+            if (!slot) return;
+
+            userBudget -= player.val;
+            player.owner = currentUser ? currentUser.clubName : "User";
+            player.status = "ocupado";
+
+            ROSTER_DATABASE[slot] = {
+                id: player.id, name: player.name, initials: player.initials,
+                teamId: player.teamId, pos: player.pos, rating: player.rating,
+                val: player.val, pts: player.pts, ptsUcl: player.ptsUcl || 0,
+                ptsLiga: player.ptsLiga || 0, cap: ""
+            };
+
             logTransfer("buy", player, player.val);
-            saveMarket(); saveBudget(); updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar();
-            showNotification(`¡Fichaje oficializado! ${player.name} se une a tu plantilla.`, "success");
+            saveMarket(); saveBudget(); saveRoster();
+            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar();
+            showNotification(`¡Fichaje oficializado! ${player.name} se une a tu plantilla (${squadSize + 1}/${MAX_SQUAD_SIZE}).`, "success");
         }
 
         function negotiateOffer(playerId) {
