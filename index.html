@@ -780,6 +780,10 @@
         <!-- HEADER (solo usuario + presupuesto) -->
         <header class="ql-header">
             <div class="ql-user-area">
+                <div class="ql-budget-display" style="text-align:right; margin-right:12px;">
+                    <div class="ql-budget-label">Plantilla</div>
+                    <div class="ql-budget-value" id="header-squad-count" style="font-size:14px; color:var(--color-gold);">0/16</div>
+                </div>
                 <div class="ql-budget-display">
                     <div class="ql-budget-label">Presupuesto</div>
                     <div class="ql-budget-value" id="header-budget">100.0M</div>
@@ -1059,14 +1063,14 @@
             "3-5-2": { gk: 1, df: 3, mf: 5, fw: 2, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1","fw-pos-2"] },
             "4-2-3-1": { gk: 1, df: 4, mf: 5, fw: 1, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1"] }
         };
-        const ROSTER_SLOTS = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","fw2","fw3","bench1","bench2","bench3","bench4","bench5"];
+        const ROSTER_SLOTS = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","bench1","bench2","bench3","bench4","bench5"];
         let currentFormation = "4-3-3";
         let marketPage = 1;
         const MARKET_PAGE_SIZE = 10;
         let _debounceTimer = null;
 
         function loadAppData() {
-            const PLAYER_DB_VERSION = "3.0";
+            const PLAYER_DB_VERSION = "3.1";
             const storedVersion = localStorage.getItem("FE_PLAYER_DB_VERSION");
             if (storedVersion !== PLAYER_DB_VERSION) {
                 localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
@@ -1101,29 +1105,9 @@
             if (storedRoster) {
                 ROSTER_DATABASE = JSON.parse(storedRoster);
             } else {
-                ROSTER_DATABASE = {
-                    gk:  { id: "p282", name: "Courtois",   teamId: "rma", pos: "GK", rating: 7.1, val: 3.0, pts: 110, ptsUcl: 60, ptsLiga: 50, cap: "V" },
-                    df1: { id: "p71",  name: "Van Dijk",    teamId: "liv", pos: "DF", rating: 7.4, val: 3.5, pts: 51,  ptsUcl: 30, ptsLiga: 21, cap: "" },
-                    df2: { id: "p327", name: "Marquinhos",  teamId: "psg", pos: "DF", rating: 7.7, val: 4.8, pts: 53,  ptsUcl: 32, ptsLiga: 21, cap: "" },
-                    df3: { id: "p18",  name: "Saliba",      teamId: "ars", pos: "DF", rating: 8.9, val: 11.5, pts: 88,  ptsUcl: 48, ptsLiga: 40, cap: "" },
-                    df4: { id: "p325", name: "Hakimi",      teamId: "psg", pos: "DF", rating: 8.6, val: 8.9, pts: 90,  ptsUcl: 50, ptsLiga: 40, cap: "" },
-                    mf1: { id: "p126", name: "Pedri",       teamId: "bar", pos: "MF", rating: 9.2, val: 12.7, pts: 95,  ptsUcl: 45, ptsLiga: 50, cap: "" },
-                    mf2: { id: "p228", name: "Rodri",       teamId: "mci", pos: "MF", rating: 8.0, val: 5.9, pts: 120, ptsUcl: 70, ptsLiga: 50, cap: "" },
-                    mf3: { id: "p261", name: "Bellingham",  teamId: "rma", pos: "MF", rating: 9.2, val: 12.7, pts: 132, ptsUcl: 72, ptsLiga: 60, cap: "" },
-                    fw1: { id: "p124", name: "L. Yamal",    teamId: "bar", pos: "FW", rating: 9.2, val: 12.7, pts: 104, ptsUcl: 54, ptsLiga: 50, cap: "" },
-                    fw2: { id: "p223", name: "Haaland",     teamId: "mci", pos: "FW", rating: 9.2, val: 12.7, pts: 140, ptsUcl: 85, ptsLiga: 55, cap: "" },
-                    fw3: { id: "p255", name: "Mbappé",      teamId: "rma", pos: "FW", rating: 9.2, val: 12.7, pts: 145, ptsUcl: 90, ptsLiga: 55, cap: "C" },
-                    bench1: { id: "p60",  name: "Donnarumma", teamId: "psg", pos: "GK", rating: 7.7, val: 4.8, pts: 42, ptsUcl: 20, ptsLiga: 22, cap: "" },
-                    bench2: { id: "p95",  name: "Rüdiger",    teamId: "rma", pos: "DF", rating: 6.5, val: 1.9, pts: 38, ptsUcl: 18, ptsLiga: 20, cap: "" },
-                    bench3: { id: "p190", name: "Koke",       teamId: "atl", pos: "MF", rating: 7.1, val: 3.0, pts: 30, ptsUcl: 15, ptsLiga: 15, cap: "" },
-                    bench4: { id: "p200", name: "Osimhen",    teamId: "gal", pos: "FW", rating: 7.1, val: 3.0, pts: 48, ptsUcl: 22, ptsLiga: 26, cap: "" },
-                    bench5: { id: "p150", name: "Bernardo S.", teamId: "bar", pos: "MF", rating: 8.6, val: 8.9, pts: 40, ptsUcl: 18, ptsLiga: 22, cap: "" }
-                };
+                ROSTER_DATABASE = {};
+                ROSTER_SLOTS.forEach(k => ROSTER_DATABASE[k] = null);
                 saveRoster();
-            }
-            for (let key in ROSTER_DATABASE) {
-                const player = ROSTER_DATABASE[key];
-                if (player && !player.initials) player.initials = player.name.split(" ").map(w => w[0]).join("").substring(0, 3).toUpperCase();
             }
         }
 
@@ -1440,6 +1424,8 @@
             if (currentUser && currentUser.role === "admin") document.getElementById("nav-admin-btn").style.display = "flex";
             else document.getElementById("nav-admin-btn").style.display = "none";
             updateHeaderUser();
+            updateBudgetDisplays();
+            updateSquadStats();
             updateDashboard();
             renderTacticalBoard();
             renderBench();
@@ -1527,10 +1513,22 @@
             root.innerHTML = "";
             const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
             document.getElementById("formation-select").value = currentFormation;
-            for (let i = 0; i < formation.positions.length && i < ROSTER_SLOTS.length; i++) {
+            for (let i = 0; i < formation.positions.length && i < STARTER_COUNT; i++) {
                 const slotKey = ROSTER_SLOTS[i];
                 const player = ROSTER_DATABASE[slotKey];
-                if (!player) continue;
+                if (!player) {
+                    root.insertAdjacentHTML("beforeend", `
+                        <div class="pitch-slot ${formation.positions[i]}" style="opacity:0.4;">
+                            <div class="fc-card" style="border-style:dashed; background:rgba(0,0,0,0.4);">
+                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:2px;">
+                                    <span style="font-size:16px;">+</span>
+                                    <span style="font-size:8px; color:var(--vt-text-dim);">${slotKey.toUpperCase()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    continue;
+                }
                 const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
                 const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
                 root.insertAdjacentHTML("beforeend", `
@@ -1558,27 +1556,31 @@
             const root = document.getElementById("bench-root");
             if (!root) return;
             root.innerHTML = "";
-            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
-            const starterCount = formation.positions.length;
-            const rosterKeys = Object.keys(ROSTER_DATABASE);
-            const benchPlayers = rosterKeys.slice(starterCount);
-            if (benchPlayers.length === 0) return;
-            benchPlayers.forEach(slotKey => {
+            const benchSlots = ROSTER_SLOTS.slice(STARTER_COUNT);
+            benchSlots.forEach((slotKey, idx) => {
                 const player = ROSTER_DATABASE[slotKey];
-                if (!player) return;
-                const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
+                if (!player) {
+                    root.insertAdjacentHTML("beforeend", `
+                        <div style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; color:var(--vt-text-dim); display:flex; align-items:center; gap:8px; opacity:0.4;">
+                            <span style="font-weight:700; color:var(--color-gold);">B${idx+1}</span>
+                            <span>Vacío — Ficha desde el mercado</span>
+                        </div>
+                    `);
+                    return;
+                }
                 const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
                 root.insertAdjacentHTML("beforeend", `
-                    <div class="pitch-slot bench-slot ${isSelected}" onclick="handleSlotSelection('${slotKey}')" style="position:relative; transform:none; display:inline-block; margin-bottom:10px;">
-                        <div class="fc-card ${isSpecial}" style="width: 100%; display:flex; flex-direction:row; align-items:center; height: 50px;">
-                            <div class="card-top" style="height:100%; flex-direction:row; align-items:center; width:50px;">
-                                <div class="card-rating-group" style="margin-left: 5px;">
-                                    <span class="card-rating" style="font-size:12px;">${Math.floor(player.rating * 10)}</span>
-                                    <span class="card-pos">${player.pos}</span>
-                                </div>
-                            </div>
-                            <div class="card-name-band" style="background:none; flex-grow:1; text-align:left; font-size:11px; padding-left:10px;">${player.name}</div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02);">
+                        <span style="font-size:10px; font-weight:700; color:var(--color-gold); min-width:18px;">B${idx+1}</span>
+                        <div class="fc-card ${isSpecial}" style="width:38px; height:50px; min-width:38px; transform:none;" onclick="handleSlotSelection('${slotKey}')">
+                            <div style="padding:3px;"><span class="card-rating" style="font-size:11px;">${Math.floor(player.rating * 10)}</span><span class="card-pos" style="font-size:7px;">${player.pos}</span></div>
+                            <div style="font-size:7px; font-weight:600;">${player.initials}</div>
                         </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:11px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${player.name}</div>
+                            <div style="font-size:10px; color:var(--vt-text-dim);">Rating ${player.rating} · ${player.val.toFixed(1)}M</div>
+                        </div>
+                        <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:10px; padding:4px 10px; border-radius:12px; white-space:nowrap;" onclick="event.stopPropagation(); sellPlayerFromSquad('${slotKey}')">Vender ${player.val.toFixed(1)}M</button>
                     </div>
                 `);
             });
@@ -1649,7 +1651,7 @@
                             <div><span class="lbl">FANTASY PTS</span><span class="v" style="color:var(--vt-neon-cyan)">${player.pts}</span></div>
                             <div><span class="lbl">VALOR</span><span class="v" style="color:var(--color-gold)">${player.val.toFixed(1)}M</span></div>
                         </div>
-                        <button class="btn btn-primary" style="width: 100%; font-size: 11px; padding: 8px; border-radius:20px;" onclick="${isOcupado ? `negotiateOffer('${player.id}')` : `buyFreeAgent('${player.id}')`}">${isOcupado ? 'Hacer Oferta' : 'Fichar Ahora'}</button>
+                        <button class="btn btn-primary" style="width: 100%; font-size: 11px; padding: 8px; border-radius:20px; ${isOcupado ? 'opacity:0.4; pointer-events:none;' : ''}" onclick="buyFreeAgent('${player.id}')">${isOcupado ? 'No Disponible' : 'Fichar Ahora'}</button>
                     </div>
                 `);
             });
@@ -1676,7 +1678,7 @@
                     <div><span style="display:block; font-size:10px; color:var(--vt-text-dim)">VALOR</span><span style="font-weight:700; color:var(--color-gold)">${player.val.toFixed(1)}M</span></div>
                     <div><span style="display:block; font-size:10px; color:var(--vt-text-dim)">PUNTOS</span><span style="font-weight:700; color:var(--vt-neon-cyan)">${player.pts}</span></div>
                 </div>
-                <button class="btn btn-primary btn-glow" style="width:100%" onclick="${player.status === 'ocupado' ? `negotiateOffer('${player.id}')` : `buyFreeAgent('${player.id}')`}">${player.status === 'ocupado' ? 'Ofertar' : 'Fichar'}</button>
+                <button class="btn btn-primary btn-glow" style="width:100%; ${player.status === 'ocupado' ? 'opacity:0.4; pointer-events:none;' : ''}" onclick="buyFreeAgent('${player.id}')">${player.status === 'ocupado' ? 'No Disponible' : 'Fichar'}</button>
             `;
             openSidebar();
         }
@@ -1724,14 +1726,113 @@
             ROSTER_DATABASE[slot] = {
                 id: player.id, name: player.name, initials: player.initials,
                 teamId: player.teamId, pos: player.pos, rating: player.rating,
-                val: player.val, pts: player.pts, ptsUcl: player.ptsUcl || 0,
-                ptsLiga: player.ptsLiga || 0, cap: ""
+                val: player.val, pts: player.rating, ptsUcl: 0, ptsLiga: 0, cap: ""
             };
 
             logTransfer("buy", player, player.val);
             saveMarket(); saveBudget(); saveRoster();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar();
-            showNotification(`¡Fichaje oficializado! ${player.name} se une a tu plantilla (${squadSize + 1}/${MAX_SQUAD_SIZE}).`, "success");
+            showNotification(`¡Fichaje oficializado! ${player.name} → ${slot.toUpperCase()} (${squadSize + 1}/${MAX_SQUAD_SIZE}). Saldo: ${userBudget.toFixed(1)}M`, "success");
+        }
+
+        function sellPlayerFromSquad(slotKey) {
+            const player = ROSTER_DATABASE[slotKey];
+            if (!player) { showNotification("No hay jugador en esa posición.", "error"); return; }
+
+            if (!confirm(`¿Vender a ${player.name} por ${player.val.toFixed(1)}M?\nSe liberará un cupo en tu plantilla.`)) return;
+
+            const salePrice = player.val;
+
+            const marketEntry = MARKET_DATABASE.find(p => p.id === player.id);
+            if (marketEntry) {
+                marketEntry.owner = "Libre";
+                marketEntry.status = "libre";
+            }
+
+            ROSTER_DATABASE[slotKey] = null;
+            userBudget += salePrice;
+
+            logTransfer("sell", player, salePrice);
+            saveRoster(); saveMarket(); saveBudget();
+            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
+            renderTacticalBoard(); renderBench();
+            showNotification(`${player.name} vendido por ${salePrice.toFixed(1)}M. Saldo: ${userBudget.toFixed(1)}M`, "success");
+        }
+
+        function autoSubstitution() {
+            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
+            const starterCount = formation.positions.length;
+            const benchSlots = ROSTER_SLOTS.slice(starterCount);
+            const starters = ROSTER_SLOTS.slice(0, starterCount);
+
+            let subsMade = [];
+
+            for (const slotKey of starters) {
+                const player = ROSTER_DATABASE[slotKey];
+                if (!player || player.rating > 0) continue;
+
+                for (const benchKey of benchSlots) {
+                    const sub = ROSTER_DATABASE[benchKey];
+                    if (!sub || sub.rating <= 0) continue;
+
+                    const testStarters = starters.map(k => ROSTER_DATABASE[k] ? ROSTER_DATABASE[k].pos : null);
+                    const idx = starters.indexOf(slotKey);
+                    testStarters[idx] = sub.pos;
+
+                    const gkCount = testStarters.filter(p => p === "GK").length;
+                    const dfCount = testStarters.filter(p => p === "DF").length;
+                    const fwCount = testStarters.filter(p => p === "FW").length;
+
+                    if (gkCount >= 1 && dfCount >= 3 && fwCount >= 1) {
+                        ROSTER_DATABASE[slotKey] = sub;
+                        ROSTER_DATABASE[benchKey] = null;
+                        subsMade.push(`${player.name} (0.0) → ${sub.name}`);
+                        break;
+                    }
+                }
+            }
+
+            return subsMade;
+        }
+
+        function calculateUserPoints() {
+            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
+            const starterCount = formation.positions.length;
+            let totalPts = 0;
+            for (let i = 0; i < starterCount; i++) {
+                const key = ROSTER_SLOTS[i];
+                const p = ROSTER_DATABASE[key];
+                if (p) totalPts += p.pts || 0;
+            }
+            return totalPts;
+        }
+
+        function applyPriceFluctuation() {
+            let risen = 0, stable = 0, dropped = 0;
+
+            const allPlayers = [...MARKET_DATABASE];
+            for (let key of ROSTER_SLOTS) {
+                if (ROSTER_DATABASE[key]) allPlayers.push(ROSTER_DATABASE[key]);
+            }
+
+            const seen = new Set();
+            for (const p of allPlayers) {
+                if (!p || !p.id || seen.has(p.id)) continue;
+                seen.add(p.id);
+
+                const r = p.rating || 0;
+                if (r >= 8.0) {
+                    p.val = Math.round((p.val + 0.5) * 10) / 10;
+                    risen++;
+                } else if (r < 6.0) {
+                    p.val = Math.max(1.0, Math.round((p.val - 0.3) * 10) / 10);
+                    dropped++;
+                } else {
+                    stable++;
+                }
+            }
+
+            return { risen, stable, dropped };
         }
 
         function negotiateOffer(playerId) {
@@ -1769,8 +1870,10 @@
         }
 
         function updateSquadStats() {
-            let squadVal = 0; for (let key in ROSTER_DATABASE) squadVal += ROSTER_DATABASE[key].val;
+            let squadVal = 0; for (let key of ROSTER_SLOTS) { if (ROSTER_DATABASE[key]) squadVal += ROSTER_DATABASE[key].val; }
             const hs = document.getElementById("header-squad-value"); if (hs) hs.innerText = `${squadVal.toFixed(1)}M €`;
+            const squadCount = getSquadSize();
+            const sc = document.getElementById("header-squad-count"); if (sc) sc.innerText = `${squadCount}/${MAX_SQUAD_SIZE}`;
         }
         function updateBudgetDisplays() {
             const hb = document.getElementById("header-budget"); if (hb) hb.innerText = `${userBudget.toFixed(1)}M`;
@@ -1778,8 +1881,8 @@
         function updateDashboard() {
             if (!currentUser) return;
             const ptsEl = document.getElementById("dash-pts");
-            let activePts = 0; for (let key in ROSTER_DATABASE) activePts += ROSTER_DATABASE[key].pts || 0;
-            if (ptsEl) ptsEl.textContent = `Pts ` + activePts.toFixed(0);
+            const totalPts = calculateUserPoints();
+            if (ptsEl) ptsEl.textContent = `Pts ` + totalPts.toFixed(0);
             const sorted = GLOBAL_LEADERBOARD.general || GLOBAL_LEADERBOARD_FALLBACK.general;
             const standRoot = document.getElementById("dash-standings");
             if (standRoot) {
@@ -1805,25 +1908,40 @@
             const resultEl = document.getElementById("admin-sim-result");
             if (!resultEl) { showNotification("Simulación completada.", "success"); return; }
             resultEl.innerHTML = "Simulando...";
-            let updated = 0;
-            for (let key in ROSTER_DATABASE) {
+
+            MARKET_DATABASE.forEach(p => {
+                p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
+            });
+
+            for (let key of ROSTER_SLOTS) {
                 const p = ROSTER_DATABASE[key];
                 if (!p) continue;
-                const bonus = Math.floor(Math.random() * 15) - 3;
-                p.pts = (p.pts || 0) + Math.max(0, bonus);
-                if (type === "champions") p.ptsUcl = (p.ptsUcl || 0) + Math.max(0, bonus);
-                else p.ptsLiga = (p.ptsLiga || 0) + Math.max(0, bonus);
-                updated++;
+                p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
+                p.pts = p.rating;
             }
-            MARKET_DATABASE.forEach(p => {
-                const bonus = Math.floor(Math.random() * 10) - 2;
-                p.pts = (p.pts || 0) + Math.max(0, bonus);
-            });
+
+            const subsMade = autoSubstitution();
+
+            for (let key of ROSTER_SLOTS) {
+                const p = ROSTER_DATABASE[key];
+                if (p && p.rating > 0) p.pts = p.rating;
+            }
+
+            const fluctuation = applyPriceFluctuation();
+
+            const userPts = calculateUserPoints();
+
             saveRoster(); saveMarket(); saveUserDataToFirestore();
             logWeeklyPoints();
-            resultEl.innerHTML = `<span style="color:var(--vt-neon-cyan);">✓ Simulación completada.</span> ${updated} jugadores actualizados (${type}).`;
+
+            let html = `<span style="color:var(--vt-neon-cyan);">✓ Jornada ${type} completada.</span><br>`;
+            html += `📊 Tus puntos: <b>${userPts.toFixed(1)}</b> | Rating promedio: <b>${(userPts / 11).toFixed(1)}</b><br>`;
+            if (subsMade.length > 0) html += `🔄 Autosustituciones: ${subsMade.join(", ")}<br>`;
+            html += `📈 Subidas: ${fluctuation.risen} | Estables: ${fluctuation.stable} | Bajadas: ${fluctuation.dropped}`;
+            resultEl.innerHTML = html;
+
             updateDashboard(); updateSquadStats();
-            showNotification(`Jornada de ${type} simulada. ${updated} jugadores actualizados.`, "success");
+            showNotification(`Jornada ${type} simulada. Puntos: ${userPts.toFixed(1)}`, "success");
         }
 
         function resetMarketPrices() {
@@ -1836,13 +1954,13 @@
         function refreshPlayerRatings() {
             let count = 0;
             MARKET_DATABASE.forEach(p => {
-                const variation = (Math.random() * 0.4 - 0.2);
-                p.rating = Math.max(6.0, Math.min(9.9, (p.rating || 7.0) + variation));
+                p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
                 count++;
             });
+            applyPriceFluctuation();
             saveMarket();
             applyMarketFilters();
-            showNotification(`${count} ratings actualizados con variación.`, "success");
+            showNotification(`${count} ratings y precios actualizados.`, "success");
         }
 
         function exportAllData() {
@@ -2047,8 +2165,9 @@
                         <div class="squad-mini-card" onclick="openMarketPlayerProfile('${p.id}')">
                             <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
                             <div class="smc-name" title="${p.name}">${p.name}</div>
-                            <div class="smc-pos">${p.pos} · ${getTeamName(p.teamId)}</div>
+                            <div class="smc-pos">${p.pos} · ${p.val.toFixed(1)}M</div>
                             <div class="smc-pts">${p.pts || 0} pts</div>
+                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:9px; padding:3px 8px; border-radius:10px; margin-top:6px; width:100%;" onclick="event.stopPropagation(); sellPlayerFromSquad('${key}')">Vender ${p.val.toFixed(1)}M</button>
                         </div>
                     `);
                 } else {
@@ -2057,7 +2176,7 @@
                             <div class="smc-rating">-</div>
                             <div class="smc-name">Vacío</div>
                             <div class="smc-pos">${key.toUpperCase()}</div>
-                            <div class="smc-pts">0 pts</div>
+                            <div class="smc-pts">Ficha desde el mercado</div>
                         </div>
                     `);
                 }
@@ -2076,8 +2195,9 @@
                         <div class="squad-mini-card bench-card" onclick="openMarketPlayerProfile('${p.id}')">
                             <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
                             <div class="smc-name" title="${p.name}">${p.name}</div>
-                            <div class="smc-pos">#${idx + 1} · ${p.pos} · ${getTeamName(p.teamId)}</div>
+                            <div class="smc-pos">#${idx + 1} · ${p.pos} · ${p.val.toFixed(1)}M</div>
                             <div class="smc-pts">${p.pts || 0} pts</div>
+                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:9px; padding:3px 8px; border-radius:10px; margin-top:6px; width:100%;" onclick="event.stopPropagation(); sellPlayerFromSquad('${key}')">Vender ${p.val.toFixed(1)}M</button>
                         </div>
                     `);
                 } else {
@@ -2086,7 +2206,7 @@
                             <div class="smc-rating">-</div>
                             <div class="smc-name">Vacío</div>
                             <div class="smc-pos">#${idx + 1} · Banco</div>
-                            <div class="smc-pts">0 pts</div>
+                            <div class="smc-pts">Ficha desde el mercado</div>
                         </div>
                     `);
                 }
