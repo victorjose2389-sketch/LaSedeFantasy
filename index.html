@@ -283,21 +283,32 @@
         /* ===== PITCH ===== */
         .pitch-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
         .pitch-container {
-            width: 100%; height: 600px;
+            width: 100%; min-height: 560px;
             background: linear-gradient(180deg, #0a4f32 0%, #063822 100%);
             border: 2px solid var(--vt-neon-cyan); border-radius: 16px;
             position: relative; overflow: hidden;
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 20px 10px 30px;
         }
-        .pitch-lines { position: absolute; inset: 0; pointer-events: none; opacity: 0.3; }
+        .pitch-lines { position: absolute; inset: 0; pointer-events: none; opacity: 0.15; }
         .pitch-lines .center-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border: 2px solid #fff; border-radius: 50%; }
         .pitch-lines .mid-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #fff; }
         .pitch-lines .box-top { position: absolute; top: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-top: none; }
         .pitch-lines .box-bottom { position: absolute; bottom: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-bottom: none; }
-        .positions-layout { position: absolute; inset: 0; }
-        .pitch-slot { position: absolute; transform: translate(-50%, -50%); cursor: pointer; transition: transform 0.2s; }
-        .pitch-slot:hover { transform: translate(-50%, -50%) scale(1.05); z-index: 10; }
+        .pitch-rows { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; gap: 8px; }
+        .pitch-row { display: flex; justify-content: center; gap: 10px; }
+        .pitch-row-label { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
+        .pitch-slot { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; flex-shrink: 0; }
+        .pitch-slot:hover { transform: scale(1.06); z-index: 10; }
         .pitch-slot.selected .fc-card { border-color: var(--color-gold); box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
+        .pitch-slot.drag-over { outline: 2px dashed var(--color-gold); outline-offset: 4px; border-radius: 10px; }
+        .pitch-slot.dragging { opacity: 0.4; }
+        .pitch-slot.empty-slot .fc-card {
+            border-style: dashed; background: rgba(0,0,0,0.3);
+            opacity: 0.5;
+        }
+        .pitch-slot.empty-slot .fc-card:hover { opacity: 0.8; }
 
         .fc-card {
             width: 75px; height: 105px;
@@ -322,10 +333,6 @@
         .stat-col span:first-child { font-weight: 700; color: var(--vt-neon-cyan); }
         .stat-col span:last-child { font-size: 6px; color: var(--vt-text-dim); }
 
-        .gk-pos { top: 90%; left: 50%; }
-        .df-pos-1 { top: 72%; left: 20%; } .df-pos-2 { top: 72%; left: 40%; } .df-pos-3 { top: 72%; left: 60%; } .df-pos-4 { top: 72%; left: 80%; }
-        .mf-pos-1 { top: 50%; left: 20%; } .mf-pos-2 { top: 50%; left: 50%; } .mf-pos-3 { top: 50%; left: 80%; } .mf-pos-4 { top: 50%; left: 35%; } .mf-pos-5 { top: 50%; left: 65%; }
-        .fw-pos-1 { top: 25%; left: 30%; } .fw-pos-2 { top: 25%; left: 70%; } .fw-pos-3 { top: 25%; left: 50%; }
 
         .mi-equipo-sidebar {
             background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08);
@@ -884,7 +891,7 @@
                             <div class="box-top"></div>
                             <div class="box-bottom"></div>
                         </div>
-                        <div class="positions-layout" id="positions-root"></div>
+                        <div class="pitch-rows" id="positions-root"></div>
                     </div>
                     <div class="mi-equipo-sidebar">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -892,8 +899,10 @@
                             <select id="formation-select" onchange="setFormation(this.value)" style="background:transparent; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:4px 8px; border-radius:4px; font-size:11px;">
                                 <option value="4-3-3">4-3-3</option>
                                 <option value="4-4-2">4-4-2</option>
+                                <option value="4-5-1">4-5-1</option>
+                                <option value="3-4-3">3-4-3</option>
                                 <option value="3-5-2">3-5-2</option>
-                                <option value="4-2-3-1">4-2-3-1</option>
+                                <option value="5-3-2">5-3-2</option>
                             </select>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--vt-text-dim); margin-bottom:10px;">
@@ -1058,12 +1067,64 @@
         let weeklyHistory = [];
 
         const FORMATIONS = {
-            "4-3-3": { gk: 1, df: 4, mf: 3, fw: 3, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","fw-pos-1","fw-pos-2","fw-pos-3"] },
-            "4-4-2": { gk: 1, df: 4, mf: 4, fw: 2, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","fw-pos-1","fw-pos-2"] },
-            "3-5-2": { gk: 1, df: 3, mf: 5, fw: 2, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1","fw-pos-2"] },
-            "4-2-3-1": { gk: 1, df: 4, mf: 5, fw: 1, positions: ["gk-pos","df-pos-1","df-pos-2","df-pos-3","df-pos-4","mf-pos-1","mf-pos-2","mf-pos-3","mf-pos-4","mf-pos-5","fw-pos-1"] }
+            "4-3-3": { gk: 1, df: 4, mf: 3, fw: 3 },
+            "4-4-2": { gk: 1, df: 4, mf: 4, fw: 2 },
+            "4-5-1": { gk: 1, df: 4, mf: 5, fw: 1 },
+            "3-4-3": { gk: 1, df: 3, mf: 4, fw: 3 },
+            "3-5-2": { gk: 1, df: 3, mf: 5, fw: 2 },
+            "5-3-2": { gk: 1, df: 5, mf: 3, fw: 2 }
         };
-        const ROSTER_SLOTS = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","bench1","bench2","bench3","bench4","bench5"];
+        const SLOT_DEFS = [
+            { key: "gk1", pos: "GK" }, { key: "gk2", pos: "GK" },
+            { key: "df1", pos: "DF" }, { key: "df2", pos: "DF" }, { key: "df3", pos: "DF" }, { key: "df4", pos: "DF" }, { key: "df5", pos: "DF" },
+            { key: "mf1", pos: "MF" }, { key: "mf2", pos: "MF" }, { key: "mf3", pos: "MF" }, { key: "mf4", pos: "MF" }, { key: "mf5", pos: "MF" },
+            { key: "fw1", pos: "FW" }, { key: "fw2", pos: "FW" }, { key: "fw3", pos: "FW" }, { key: "fw4", pos: "FW" }
+        ];
+        const ALL_SLOT_KEYS = SLOT_DEFS.map(s => s.key);
+        const POS_MAX = { GK: 2, DF: 5, MF: 5, FW: 4 };
+
+        function getStarterKeys() {
+            const f = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
+            const starters = [];
+            const counts = { GK: 0, DF: 0, MF: 0, FW: 0 };
+            for (const s of SLOT_DEFS) {
+                if (counts[s.pos] < f[s.pos.toLowerCase()]) {
+                    starters.push(s.key);
+                    counts[s.pos]++;
+                }
+            }
+            return starters;
+        }
+        function getBenchKeys() {
+            const starters = getStarterKeys();
+            return SLOT_DEFS.filter(s => !starters.includes(s.key)).map(s => s.key);
+        }
+        function getSlotPos(key) {
+            const s = SLOT_DEFS.find(d => d.key === key);
+            return s ? s.pos : null;
+        }
+        function posCount(pos) {
+            let c = 0;
+            for (const k of ALL_SLOT_KEYS) { if (ROSTER_DATABASE[k] && getSlotPos(k) === pos) c++; }
+            return c;
+        }
+        function migrateRosterIfNeeded() {
+            if (localStorage.getItem("FE_SQUAD_VERSION") === "2") return;
+            const oldKeys = ["gk","df1","df2","df3","df4","mf1","mf2","mf3","mf4","mf5","fw1","bench1","bench2","bench3","bench4","bench5"];
+            const players = [];
+            for (const k of oldKeys) {
+                if (ROSTER_DATABASE[k]) { players.push(ROSTER_DATABASE[k]); ROSTER_DATABASE[k] = null; }
+            }
+            for (const k of ALL_SLOT_KEYS) { ROSTER_DATABASE[k] = null; }
+            const posOrder = { GK: 0, DF: 1, MF: 2, FW: 3 };
+            players.sort((a, b) => (posOrder[a.pos] || 0) - (posOrder[b.pos] || 0));
+            for (const p of players) {
+                const slot = SLOT_DEFS.find(s => s.pos === p.pos && !ROSTER_DATABASE[s.key]);
+                if (slot) ROSTER_DATABASE[slot.key] = p;
+            }
+            localStorage.setItem("FE_SQUAD_VERSION", "2");
+            saveRoster();
+        }
         let currentFormation = "4-3-3";
         let marketPage = 1;
         const MARKET_PAGE_SIZE = 10;
@@ -1104,9 +1165,10 @@
             const storedRoster = localStorage.getItem("FE_ROSTER");
             if (storedRoster) {
                 ROSTER_DATABASE = JSON.parse(storedRoster);
+                migrateRosterIfNeeded();
             } else {
                 ROSTER_DATABASE = {};
-                ROSTER_SLOTS.forEach(k => ROSTER_DATABASE[k] = null);
+                ALL_SLOT_KEYS.forEach(k => ROSTER_DATABASE[k] = null);
                 saveRoster();
             }
         }
@@ -1162,8 +1224,8 @@
         function logWeeklyPoints() {
             const gw = weeklyHistory.length + 1;
             let totalPts = 0;
-            for (let i = 0; i < STARTER_COUNT; i++) {
-                const key = ROSTER_SLOTS[i];
+            const starters = getStarterKeys();
+            for (const key of starters) {
                 if (ROSTER_DATABASE[key]) totalPts += ROSTER_DATABASE[key].pts || 0;
             }
             weeklyHistory.push({ gw: gw, pts: totalPts });
@@ -1517,91 +1579,195 @@
             root.innerHTML = "";
             const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
             document.getElementById("formation-select").value = currentFormation;
-            for (let i = 0; i < formation.positions.length && i < STARTER_COUNT; i++) {
-                const slotKey = ROSTER_SLOTS[i];
-                const player = ROSTER_DATABASE[slotKey];
-                if (!player) {
-                    root.insertAdjacentHTML("beforeend", `
-                        <div class="pitch-slot ${formation.positions[i]}" style="opacity:0.4;">
-                            <div class="fc-card" style="border-style:dashed; background:rgba(0,0,0,0.4);">
-                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:2px;">
-                                    <span style="font-size:16px;">+</span>
-                                    <span style="font-size:8px; color:var(--vt-text-dim);">${slotKey.toUpperCase()}</span>
+            const starters = getStarterKeys();
+            const rows = [
+                { label: "DEL", pos: "FW", count: formation.fw },
+                { label: "MED", pos: "MF", count: formation.mf },
+                { label: "DEF", pos: "DF", count: formation.df },
+                { label: "POR", pos: "GK", count: formation.gk }
+            ];
+            const slotIdx = { GK: 0, DF: 0, MF: 0, FW: 0 };
+            const posSlotKeys = { GK: [], DF: [], MF: [], FW: [] };
+            for (const s of SLOT_DEFS) { posSlotKeys[s.pos].push(s.key); }
+            for (const row of rows) {
+                const rowWrap = document.createElement("div");
+                rowWrap.style.cssText = "display:flex; flex-direction:column; align-items:center;";
+                const labelDiv = document.createElement("div");
+                labelDiv.className = "pitch-row-label";
+                labelDiv.textContent = row.label;
+                rowWrap.appendChild(labelDiv);
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "pitch-row";
+                for (let i = 0; i < row.count; i++) {
+                    const slotKey = posSlotKeys[row.pos][slotIdx[row.pos] + i];
+                    slotIdx[row.pos]++;
+                    if (!slotKey) continue;
+                    const player = ROSTER_DATABASE[slotKey];
+                    const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
+                    if (!player) {
+                        rowDiv.insertAdjacentHTML("beforeend", `
+                            <div class="pitch-slot empty-slot ${isSelected}"
+                                 draggable="true"
+                                 ondragstart="handleDragStart(event,'${slotKey}')"
+                                 ondragover="handleDragOver(event)"
+                                 ondragleave="handleDragLeave(event)"
+                                 ondrop="handleDrop(event,'${slotKey}')"
+                                 onclick="handleSlotSelection('${slotKey}')">
+                                <div class="fc-card">
+                                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:2px;">
+                                        <span style="font-size:16px;">+</span>
+                                        <span style="font-size:8px;color:var(--vt-text-dim);">${row.pos}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `);
-                    continue;
+                        `);
+                    } else {
+                        const tier = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
+                        rowDiv.insertAdjacentHTML("beforeend", `
+                            <div class="pitch-slot ${isSelected}"
+                                 draggable="true"
+                                 ondragstart="handleDragStart(event,'${slotKey}')"
+                                 ondragover="handleDragOver(event)"
+                                 ondragleave="handleDragLeave(event)"
+                                 ondrop="handleDrop(event,'${slotKey}')"
+                                 onclick="handleSlotSelection('${slotKey}')">
+                                <div class="fc-card ${tier}">
+                                    <div class="card-top">
+                                        <div class="card-rating-group">
+                                            <span class="card-rating">${Math.floor(player.rating * 10)}</span>
+                                            <span class="card-pos">${player.pos}</span>
+                                        </div>
+                                        <div class="card-avatar-initials">${player.initials}</div>
+                                    </div>
+                                    <div class="card-name-band">${player.name}</div>
+                                    <div class="card-bottom-stats">
+                                        <div class="stat-col"><span>${player.pts}</span><span>PTS</span></div>
+                                        <div class="stat-col"><span>${player.val}M</span><span>VAL</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
                 }
-                const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
-                const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
-                root.insertAdjacentHTML("beforeend", `
-                    <div class="pitch-slot ${formation.positions[i]} ${isSelected}" onclick="handleSlotSelection('${slotKey}')">
-                        <div class="fc-card ${isSpecial}">
-                            <div class="card-top">
-                                <div class="card-rating-group">
-                                    <span class="card-rating">${Math.floor(player.rating * 10)}</span>
-                                    <span class="card-pos">${player.pos}</span>
-                                </div>
-                                <div class="card-avatar-initials">${player.initials}</div>
-                            </div>
-                            <div class="card-name-band">${player.name}</div>
-                            <div class="card-bottom-stats">
-                                <div class="stat-col"><span>${player.pts}</span><span>PTS</span></div>
-                                <div class="stat-col"><span>${player.val}M</span><span>VAL</span></div>
-                            </div>
-                        </div>
-                    </div>
-                `);
+                rowWrap.appendChild(rowDiv);
+                root.appendChild(rowWrap);
             }
+        }
+
+        let _dragSourceKey = null;
+
+        function handleDragStart(e, slotKey) {
+            _dragSourceKey = slotKey;
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", slotKey);
+            setTimeout(() => { const el = e.target.closest(".pitch-slot"); if (el) el.classList.add("dragging"); }, 0);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            const slot = e.target.closest(".pitch-slot");
+            if (slot) slot.classList.add("drag-over");
+        }
+
+        function handleDragLeave(e) {
+            const slot = e.target.closest(".pitch-slot");
+            if (slot) slot.classList.remove("drag-over");
+        }
+
+        function handleDrop(e, targetKey) {
+            e.preventDefault();
+            const slot = e.target.closest(".pitch-slot");
+            if (slot) slot.classList.remove("drag-over");
+            document.querySelectorAll(".pitch-slot.dragging").forEach(el => el.classList.remove("dragging"));
+            if (!_dragSourceKey || _dragSourceKey === targetKey) { _dragSourceKey = null; return; }
+            const fromPos = getSlotPos(_dragSourceKey);
+            const toPos = getSlotPos(targetKey);
+            if (fromPos !== toPos) {
+                showNotification(`Posición no compatible: ${fromPos} → ${toPos}`, "error");
+                _dragSourceKey = null;
+                return;
+            }
+            const temp = ROSTER_DATABASE[targetKey];
+            ROSTER_DATABASE[targetKey] = ROSTER_DATABASE[_dragSourceKey];
+            ROSTER_DATABASE[_dragSourceKey] = temp;
+            _dragSourceKey = null;
+            saveRoster();
+            showNotification(`Intercambio realizado.`, "success");
+            renderTacticalBoard();
+            renderBench();
         }
 
         function renderBench() {
             const root = document.getElementById("bench-root");
             if (!root) return;
             root.innerHTML = "";
-            const benchSlots = ROSTER_SLOTS.slice(STARTER_COUNT);
-            benchSlots.forEach((slotKey, idx) => {
-                const player = ROSTER_DATABASE[slotKey];
-                if (!player) {
+            const benchKeys = getBenchKeys();
+            const posGroups = { GK: [], DF: [], MF: [], FW: [] };
+            for (const k of benchKeys) { const p = ROSTER_DATABASE[k]; const pos = getSlotPos(k); if (pos) posGroups[pos].push(k); }
+            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+            for (const pos of ["GK", "DF", "MF", "FW"]) {
+                const slots = posGroups[pos];
+                if (slots.length === 0) continue;
+                root.insertAdjacentHTML("beforeend", `<div style="font-size:9px;font-weight:700;color:var(--vt-text-dim);text-transform:uppercase;letter-spacing:1px;padding:8px 12px 4px;">${posLabels[pos]} (${slots.length})</div>`);
+                for (const slotKey of slots) {
+                    const player = ROSTER_DATABASE[slotKey];
+                    if (!player) {
+                        root.insertAdjacentHTML("beforeend", `
+                            <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;color:var(--vt-text-dim);display:flex;align-items:center;gap:8px;opacity:0.4;"
+                                 ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,'${slotKey}')">
+                                <span>Vacío — ${posLabels[pos]}</span>
+                            </div>
+                        `);
+                        continue;
+                    }
+                    const tier = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
+                    const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
                     root.insertAdjacentHTML("beforeend", `
-                        <div style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; color:var(--vt-text-dim); display:flex; align-items:center; gap:8px; opacity:0.4;">
-                            <span style="font-weight:700; color:var(--color-gold);">B${idx+1}</span>
-                            <span>Vacío — Ficha desde el mercado</span>
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);"
+                             draggable="true"
+                             ondragstart="handleDragStart(event,'${slotKey}')"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event,'${slotKey}')">
+                            <div class="fc-card ${tier} ${isSelected}" style="width:38px;height:50px;min-width:38px;transform:none;cursor:pointer;" onclick="handleSlotSelection('${slotKey}')">
+                                <div style="padding:3px;"><span class="card-rating" style="font-size:11px;">${Math.floor(player.rating * 10)}</span><span class="card-pos" style="font-size:7px;">${player.pos}</span></div>
+                                <div style="font-size:7px;font-weight:600;">${player.initials}</div>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${player.name}</div>
+                                <div style="font-size:10px;color:var(--vt-text-dim);">Rating ${player.rating} · ${player.val.toFixed(1)}M</div>
+                            </div>
+                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:10px;padding:4px 10px;border-radius:12px;white-space:nowrap;" onclick="event.stopPropagation();sellPlayerFromSquad('${slotKey}')">Vender ${player.val.toFixed(1)}M</button>
                         </div>
                     `);
-                    return;
                 }
-                const isSpecial = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
-                root.insertAdjacentHTML("beforeend", `
-                    <div style="display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02);">
-                        <span style="font-size:10px; font-weight:700; color:var(--color-gold); min-width:18px;">B${idx+1}</span>
-                        <div class="fc-card ${isSpecial}" style="width:38px; height:50px; min-width:38px; transform:none;" onclick="handleSlotSelection('${slotKey}')">
-                            <div style="padding:3px;"><span class="card-rating" style="font-size:11px;">${Math.floor(player.rating * 10)}</span><span class="card-pos" style="font-size:7px;">${player.pos}</span></div>
-                            <div style="font-size:7px; font-weight:600;">${player.initials}</div>
-                        </div>
-                        <div style="flex:1; min-width:0;">
-                            <div style="font-size:11px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${player.name}</div>
-                            <div style="font-size:10px; color:var(--vt-text-dim);">Rating ${player.rating} · ${player.val.toFixed(1)}M</div>
-                        </div>
-                        <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:10px; padding:4px 10px; border-radius:12px; white-space:nowrap;" onclick="event.stopPropagation(); sellPlayerFromSquad('${slotKey}')">Vender ${player.val.toFixed(1)}M</button>
-                    </div>
-                `);
-            });
+            }
         }
 
         function handleSlotSelection(slotKey) {
             if (selectedPitchSlotKey === null) {
                 selectedPitchSlotKey = slotKey;
-                showNotification(`Has seleccionado a ${ROSTER_DATABASE[slotKey].name}. Elige con quién intercambiar.`, "info");
+                const name = ROSTER_DATABASE[slotKey] ? ROSTER_DATABASE[slotKey].name : slotKey.toUpperCase();
+                showNotification(`Seleccionado: ${name}. Elige destino para intercambiar.`, "info");
             } else {
                 if (selectedPitchSlotKey !== slotKey) {
+                    const fromPos = getSlotPos(selectedPitchSlotKey);
+                    const toPos = getSlotPos(slotKey);
+                    if (fromPos !== toPos) {
+                        showNotification(`Posición no compatible: ${fromPos} → ${toPos}`, "error");
+                        selectedPitchSlotKey = null;
+                        renderTacticalBoard(); renderBench();
+                        return;
+                    }
                     const p1 = ROSTER_DATABASE[selectedPitchSlotKey];
                     const p2 = ROSTER_DATABASE[slotKey];
                     ROSTER_DATABASE[selectedPitchSlotKey] = p2;
                     ROSTER_DATABASE[slotKey] = p1;
                     saveRoster();
-                    showNotification(`Cambio: ${p1.name} 🔄 ${p2.name}.`, "success");
+                    const n1 = p1 ? p1.name : "Vacío";
+                    const n2 = p2 ? p2.name : "Vacío";
+                    showNotification(`Cambio: ${n1} 🔄 ${n2}.`, "success");
                 }
                 selectedPitchSlotKey = null;
             }
@@ -1692,15 +1858,15 @@
 
         function getSquadSize() {
             let count = 0;
-            for (let key of ROSTER_SLOTS) {
+            for (let key of ALL_SLOT_KEYS) {
                 if (ROSTER_DATABASE[key]) count++;
             }
             return count;
         }
 
-        function getNextAvailableSlot() {
-            for (let key of ROSTER_SLOTS) {
-                if (!ROSTER_DATABASE[key]) return key;
+        function getNextAvailableSlot(pos) {
+            for (let s of SLOT_DEFS) {
+                if (s.pos === pos && !ROSTER_DATABASE[s.key]) return s.key;
             }
             return null;
         }
@@ -1719,8 +1885,13 @@
                 showNotification(`Presupuesto insuficiente. Necesitas ${player.val.toFixed(1)}M y tienes ${userBudget.toFixed(1)}M.`, "error");
                 return;
             }
+            const currentPosCount = posCount(player.pos);
+            if (currentPosCount >= POS_MAX[player.pos]) {
+                showNotification(`Límite de ${POS_MAX[player.pos]} ${player.pos} alcanzado. Vende uno primero.`, "error");
+                return;
+            }
 
-            const slot = getNextAvailableSlot();
+            const slot = getNextAvailableSlot(player.pos);
             if (!slot) return;
 
             userBudget -= player.val;
@@ -1764,35 +1935,24 @@
         }
 
         function autoSubstitution() {
-            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
-            const starterCount = formation.positions.length;
-            const benchSlots = ROSTER_SLOTS.slice(starterCount);
-            const starters = ROSTER_SLOTS.slice(0, starterCount);
-
+            const starters = getStarterKeys();
+            const benchKeys = getBenchKeys();
             let subsMade = [];
 
             for (const slotKey of starters) {
                 const player = ROSTER_DATABASE[slotKey];
                 if (!player || player.rating > 0) continue;
+                const slotPos = getSlotPos(slotKey);
 
-                for (const benchKey of benchSlots) {
+                for (const benchKey of benchKeys) {
                     const sub = ROSTER_DATABASE[benchKey];
                     if (!sub || sub.rating <= 0) continue;
+                    if (sub.pos !== slotPos) continue;
 
-                    const testStarters = starters.map(k => ROSTER_DATABASE[k] ? ROSTER_DATABASE[k].pos : null);
-                    const idx = starters.indexOf(slotKey);
-                    testStarters[idx] = sub.pos;
-
-                    const gkCount = testStarters.filter(p => p === "GK").length;
-                    const dfCount = testStarters.filter(p => p === "DF").length;
-                    const fwCount = testStarters.filter(p => p === "FW").length;
-
-                    if (gkCount >= 1 && dfCount >= 3 && fwCount >= 1) {
-                        ROSTER_DATABASE[slotKey] = sub;
-                        ROSTER_DATABASE[benchKey] = null;
-                        subsMade.push(`${player.name} (0.0) → ${sub.name}`);
-                        break;
-                    }
+                    ROSTER_DATABASE[slotKey] = sub;
+                    ROSTER_DATABASE[benchKey] = null;
+                    subsMade.push(`${player.name} (0.0) → ${sub.name}`);
+                    break;
                 }
             }
 
@@ -1800,11 +1960,9 @@
         }
 
         function calculateUserPoints() {
-            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
-            const starterCount = formation.positions.length;
+            const starters = getStarterKeys();
             let totalPts = 0;
-            for (let i = 0; i < starterCount; i++) {
-                const key = ROSTER_SLOTS[i];
+            for (const key of starters) {
                 const p = ROSTER_DATABASE[key];
                 if (p) totalPts += p.pts || 0;
             }
@@ -1815,7 +1973,7 @@
             let risen = 0, stable = 0, dropped = 0;
 
             const allPlayers = [...MARKET_DATABASE];
-            for (let key of ROSTER_SLOTS) {
+            for (let key of ALL_SLOT_KEYS) {
                 if (ROSTER_DATABASE[key]) allPlayers.push(ROSTER_DATABASE[key]);
             }
 
@@ -1874,7 +2032,7 @@
         }
 
         function updateSquadStats() {
-            let squadVal = 0; for (let key of ROSTER_SLOTS) { if (ROSTER_DATABASE[key]) squadVal += ROSTER_DATABASE[key].val; }
+            let squadVal = 0; for (let key of ALL_SLOT_KEYS) { if (ROSTER_DATABASE[key]) squadVal += ROSTER_DATABASE[key].val; }
             const hs = document.getElementById("header-squad-value"); if (hs) hs.innerText = `${squadVal.toFixed(1)}M €`;
             const squadCount = getSquadSize();
             const sc = document.getElementById("header-squad-count"); if (sc) sc.innerText = `${squadCount}/${MAX_SQUAD_SIZE}`;
@@ -1917,7 +2075,7 @@
                 p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
             });
 
-            for (let key of ROSTER_SLOTS) {
+            for (let key of ALL_SLOT_KEYS) {
                 const p = ROSTER_DATABASE[key];
                 if (!p) continue;
                 p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
@@ -1926,7 +2084,7 @@
 
             const subsMade = autoSubstitution();
 
-            for (let key of ROSTER_SLOTS) {
+            for (let key of ALL_SLOT_KEYS) {
                 const p = ROSTER_DATABASE[key];
                 if (p && p.rating > 0) p.pts = p.rating;
             }
@@ -2060,8 +2218,8 @@
                 if (sorted[i].current) { posInGeneral = "#" + (i + 1); break; }
             }
 
-            const starterSlots = ROSTER_SLOTS.slice(0, STARTER_COUNT);
-            const benchSlots = ROSTER_SLOTS.slice(STARTER_COUNT);
+            const starterSlots = getStarterKeys();
+            const benchSlots = getBenchKeys();
 
             root.innerHTML = `
                 <div class="profile-hero">
@@ -2160,10 +2318,10 @@
             const grid = document.getElementById("club-starters-grid");
             if (!grid) return;
             grid.innerHTML = "";
-            const formation = FORMATIONS[currentFormation] || FORMATIONS["4-3-3"];
-            for (let i = 0; i < formation.positions.length && i < STARTER_COUNT; i++) {
-                const key = ROSTER_SLOTS[i];
+            const starters = getStarterKeys();
+            for (const key of starters) {
                 const p = ROSTER_DATABASE[key];
+                const slotPos = getSlotPos(key);
                 if (p) {
                     grid.insertAdjacentHTML("beforeend", `
                         <div class="squad-mini-card" onclick="openMarketPlayerProfile('${p.id}')">
@@ -2179,7 +2337,7 @@
                         <div class="squad-mini-card empty-card">
                             <div class="smc-rating">-</div>
                             <div class="smc-name">Vacío</div>
-                            <div class="smc-pos">${key.toUpperCase()}</div>
+                            <div class="smc-pos">${slotPos || key.toUpperCase()}</div>
                             <div class="smc-pts">Ficha desde el mercado</div>
                         </div>
                     `);
@@ -2191,9 +2349,10 @@
             const grid = document.getElementById("club-bench-grid");
             if (!grid) return;
             grid.innerHTML = "";
-            const benchSlots = ROSTER_SLOTS.slice(STARTER_COUNT);
-            benchSlots.forEach((key, idx) => {
+            const benchKeys = getBenchKeys();
+            benchKeys.forEach((key, idx) => {
                 const p = ROSTER_DATABASE[key];
+                const slotPos = getSlotPos(key);
                 if (p) {
                     grid.insertAdjacentHTML("beforeend", `
                         <div class="squad-mini-card bench-card" onclick="openMarketPlayerProfile('${p.id}')">
