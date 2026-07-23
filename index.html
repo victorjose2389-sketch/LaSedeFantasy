@@ -289,7 +289,7 @@
             width: 100%; min-height: 560px;
             background: linear-gradient(180deg, #0a4f32 0%, #063822 100%);
             border: 2px solid var(--vt-neon-cyan); border-radius: 16px;
-            position: relative; overflow: hidden;
+            position: relative; overflow: visible;
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
             display: flex; flex-direction: column; justify-content: space-between;
             padding: 20px 10px 30px;
@@ -1730,58 +1730,28 @@
         function renderBench() {
             const root = document.getElementById("bench-root");
             if (!root) return;
-            root.innerHTML = "";
             const benchKeys = getBenchKeys();
             const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
-            root.insertAdjacentHTML("beforeend", `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px;">`);
+            let html = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
             benchKeys.forEach((slotKey, idx) => {
                 const player = ROSTER_DATABASE[slotKey];
                 const slotPos = getSlotPos(slotKey);
                 const posLabel = posLabels[slotPos] || slotPos;
                 if (!player) {
-                    root.insertAdjacentHTML("beforeend", `
-                        <div class="bench-slot-empty"
-                             draggable="true"
-                             ondragstart="handleDragStart(event,'${slotKey}')"
-                             ondragover="handleDragOver(event)"
-                             ondragleave="handleDragLeave(event)"
-                             ondrop="handleDrop(event,'${slotKey}')"
-                             onclick="handleSlotSelection('${slotKey}')"
-                             style="background:rgba(0,0,0,0.4);border:1px dashed rgba(255,255,255,0.2);border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;opacity:0.75;"
-                             onmouseover="this.style.opacity='1';this.style.borderColor='rgba(0,240,255,0.5)';this.style.boxShadow='0 0 10px rgba(0,240,255,0.2)'"
-                             onmouseout="this.style.opacity='0.75';this.style.borderColor='rgba(255,255,255,0.2)';this.style.boxShadow='none'">
-                            <div style="font-size:8px;color:var(--vt-text-dim);font-weight:700;margin-bottom:2px;">#${idx + 1}</div>
-                            <div style="font-size:10px;font-weight:700;color:var(--vt-neon-cyan);margin-bottom:2px;">${posLabel}</div>
-                            <div style="font-size:14px;margin-bottom:2px;">+</div>
-                            <div style="font-size:7px;color:var(--vt-text-dim);">Vacío</div>
-                        </div>
-                    `);
+                    html += '<div draggable="true" ondragstart="handleDragStart(event,\'' + slotKey + '\')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,\'' + slotKey + '\')" onclick="handleSlotSelection(\'' + slotKey + '\')" style="background:rgba(0,0,0,0.4);border:1px dashed rgba(255,255,255,0.2);border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;opacity:0.75;" onmouseover="this.style.opacity=\'1\';this.style.borderColor=\'rgba(0,240,255,0.5)\';this.style.boxShadow=\'0 0 10px rgba(0,240,255,0.2)\'" onmouseout="this.style.opacity=\'0.75\';this.style.borderColor=\'rgba(255,255,255,0.2)\';this.style.boxShadow=\'none\'"><div style="font-size:8px;color:var(--vt-text-dim);font-weight:700;margin-bottom:2px;">#' + (idx+1) + '</div><div style="font-size:10px;font-weight:700;color:var(--vt-neon-cyan);margin-bottom:2px;">' + posLabel + '</div><div style="font-size:14px;margin-bottom:2px;">+</div><div style="font-size:7px;color:var(--vt-text-dim);">Vacío</div></div>';
                 } else {
                     const tier = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
-                    const isSelected = selectedPitchSlotKey === slotKey;
-                    root.insertAdjacentHTML("beforeend", `
-                        <div class="bench-slot-filled"
-                             draggable="true"
-                             ondragstart="handleDragStart(event,'${slotKey}')"
-                             ondragover="handleDragOver(event)"
-                             ondragleave="handleDragLeave(event)"
-                             ondrop="handleDrop(event,'${slotKey}')"
-                             style="background:rgba(255,255,255,0.03);border:1px solid ${isSelected ? 'var(--color-gold)' : 'rgba(255,255,255,0.1)'};border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;${isSelected ? 'box-shadow:0 0 12px rgba(251,191,36,0.3);' : ''}"
-                             onmouseover="this.style.borderColor='var(--vt-neon-cyan)';this.style.transform='translateY(-2px)'"
-                             onmouseout="this.style.borderColor='${isSelected ? 'var(--color-gold)' : 'rgba(255,255,255,0.1)'}';this.style.transform='none'">
-                            <div style="font-size:8px;color:var(--vt-text-dim);font-weight:700;margin-bottom:2px;">#${idx + 1}</div>
-                            <div class="fc-card ${tier}" style="width:36px;height:44px;min-width:36px;transform:none;margin-bottom:4px;" onclick="handleSlotSelection('${slotKey}')">
-                                <div style="padding:2px;"><span class="card-rating" style="font-size:11px;">${Math.floor(player.rating * 10)}</span><span class="card-pos" style="font-size:6px;">${player.pos}</span></div>
-                                <div style="font-size:7px;font-weight:600;">${player.initials}</div>
-                            </div>
-                            <div style="font-size:8px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:55px;" title="${player.name}">${player.name.split(' ').pop()}</div>
-                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:7px;padding:2px 4px;border-radius:8px;white-space:nowrap;margin-top:2px;width:100%;" onclick="event.stopPropagation();sellPlayerFromSquad('${slotKey}')">Vender</button>
-                        </div>
-                    `);
+                    const isSel = selectedPitchSlotKey === slotKey;
+                    const bC = isSel ? 'var(--color-gold)' : 'rgba(255,255,255,0.1)';
+                    const sh = isSel ? 'box-shadow:0 0 12px rgba(251,191,36,0.3);' : '';
+                    const shH = isSel ? 'box-shadow:0 0 12px rgba(251,191,36,0.5);' : '';
+                    html += '<div draggable="true" ondragstart="handleDragStart(event,\'' + slotKey + '\')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,\'' + slotKey + '\')" style="background:rgba(255,255,255,0.03);border:1px solid ' + bC + ';border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;' + sh + '" onmouseover="this.style.borderColor=\'var(--vt-neon-cyan)\';this.style.transform=\'translateY(-2px)\';' + shH + '" onmouseout="this.style.borderColor=\'' + bC + '\';this.style.transform=\'none\';' + sh + '"><div style="font-size:8px;color:var(--vt-text-dim);font-weight:700;margin-bottom:2px;">#' + (idx+1) + '</div><div class="fc-card ' + tier + '" style="width:36px;height:44px;min-width:36px;transform:none;margin-bottom:4px;" onclick="handleSlotSelection(\'' + slotKey + '\')"><div style="padding:2px;"><span class="card-rating" style="font-size:11px;">' + Math.floor(player.rating * 10) + '</span><span class="card-pos" style="font-size:6px;">' + player.pos + '</span></div><div style="font-size:7px;font-weight:600;">' + player.initials + '</div></div><div style="font-size:8px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:55px;" title="' + player.name + '">' + player.name.split(' ').pop() + '</div><button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:7px;padding:2px 4px;border-radius:8px;white-space:nowrap;margin-top:2px;width:100%;" onclick="event.stopPropagation();sellPlayerFromSquad(\'' + slotKey + '\')">Vender</button></div>';
                 }
             });
-            root.insertAdjacentHTML("beforeend", `</div>`);
+            html += '</div>';
+            root.innerHTML = html;
         }
+
 
         function handleSlotSelection(slotKey) {
             if (selectedPitchSlotKey === null) {
@@ -2357,15 +2327,23 @@
             if (!grid) return;
             grid.innerHTML = "";
             const starters = getStarterKeys();
-            for (const key of starters) {
+            const posOrder = { GK: 0, DF: 1, MF: 2, FW: 3 };
+            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+            const sorted = starters.slice().sort((a, b) => {
+                const pA = posOrder[getSlotPos(a)] || 0;
+                const pB = posOrder[getSlotPos(b)] || 0;
+                return pA - pB;
+            });
+            for (const key of sorted) {
                 const p = ROSTER_DATABASE[key];
                 const slotPos = getSlotPos(key);
+                const posLabel = posLabels[slotPos] || slotPos;
                 if (p) {
                     grid.insertAdjacentHTML("beforeend", `
                         <div class="squad-mini-card" onclick="openMarketPlayerProfile('${p.id}')">
                             <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
                             <div class="smc-name" title="${p.name}">${p.name}</div>
-                            <div class="smc-pos">${p.pos} · ${p.val.toFixed(1)}M</div>
+                            <div class="smc-pos">${posLabel} · ${p.val.toFixed(1)}M</div>
                             <div class="smc-pts">${p.pts || 0} pts</div>
                             <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:9px; padding:3px 8px; border-radius:10px; margin-top:6px; width:100%;" onclick="event.stopPropagation(); sellPlayerFromSquad('${key}')">Vender ${p.val.toFixed(1)}M</button>
                         </div>
@@ -2375,7 +2353,7 @@
                         <div class="squad-mini-card empty-card">
                             <div class="smc-rating">-</div>
                             <div class="smc-name">Vacío</div>
-                            <div class="smc-pos">${slotPos || key.toUpperCase()}</div>
+                            <div class="smc-pos">${posLabel}</div>
                             <div class="smc-pts">Ficha desde el mercado</div>
                         </div>
                     `);
@@ -2383,20 +2361,29 @@
             }
         }
 
+
         function renderClubBench() {
             const grid = document.getElementById("club-bench-grid");
             if (!grid) return;
             grid.innerHTML = "";
             const benchKeys = getBenchKeys();
-            benchKeys.forEach((key, idx) => {
+            const posOrder = { GK: 0, DF: 1, MF: 2, FW: 3 };
+            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+            const sorted = benchKeys.slice().sort((a, b) => {
+                const pA = posOrder[getSlotPos(a)] || 0;
+                const pB = posOrder[getSlotPos(b)] || 0;
+                return pA - pB;
+            });
+            sorted.forEach((key, idx) => {
                 const p = ROSTER_DATABASE[key];
                 const slotPos = getSlotPos(key);
+                const posLabel = posLabels[slotPos] || slotPos;
                 if (p) {
                     grid.insertAdjacentHTML("beforeend", `
                         <div class="squad-mini-card bench-card" onclick="openMarketPlayerProfile('${p.id}')">
                             <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
                             <div class="smc-name" title="${p.name}">${p.name}</div>
-                            <div class="smc-pos">#${idx + 1} · ${p.pos} · ${p.val.toFixed(1)}M</div>
+                            <div class="smc-pos">#${idx + 1} · ${posLabel} · ${p.val.toFixed(1)}M</div>
                             <div class="smc-pts">${p.pts || 0} pts</div>
                             <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:9px; padding:3px 8px; border-radius:10px; margin-top:6px; width:100%;" onclick="event.stopPropagation(); sellPlayerFromSquad('${key}')">Vender ${p.val.toFixed(1)}M</button>
                         </div>
@@ -2406,13 +2393,14 @@
                         <div class="squad-mini-card bench-card empty-card">
                             <div class="smc-rating">-</div>
                             <div class="smc-name">Vacío</div>
-                            <div class="smc-pos">#${idx + 1} · Banco</div>
+                            <div class="smc-pos">#${idx + 1} · ${posLabel}</div>
                             <div class="smc-pts">Ficha desde el mercado</div>
                         </div>
                     `);
                 }
             });
         }
+
 
         function renderTransferLog() {
             const log = document.getElementById("club-transfer-log");
