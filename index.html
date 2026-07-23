@@ -1214,7 +1214,7 @@
         const MARKET_PAGE_SIZE = 10;
         let _debounceTimer = null;
 
-        function loadAppData() {
+        function loadAppData(firestoreLoaded) {
             const PLAYER_DB_VERSION = "3.1";
             const storedVersion = localStorage.getItem("FE_PLAYER_DB_VERSION");
             if (storedVersion !== PLAYER_DB_VERSION) {
@@ -1236,8 +1236,12 @@
                 MARKET_DATABASE = JSON.parse(JSON.stringify(STAR_PLAYERS_POOL));
                 localStorage.setItem("FE_MARKET", JSON.stringify(MARKET_DATABASE));
             }
-            userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 125.0;
-            currentFormation = localStorage.getItem("FE_FORMATION") || "4-3-3";
+
+            if (!firestoreLoaded) {
+                userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 125.0;
+                currentFormation = localStorage.getItem("FE_FORMATION") || "4-3-3";
+            }
+
             try {
                 GLOBAL_LEADERBOARD = JSON.parse(localStorage.getItem("FE_LEADERBOARD")) || GLOBAL_LEADERBOARD_FALLBACK;
             } catch(e) { GLOBAL_LEADERBOARD = GLOBAL_LEADERBOARD_FALLBACK; }
@@ -1246,14 +1250,16 @@
             try { transferHistory = JSON.parse(localStorage.getItem("FE_TRANSFER_HISTORY")) || []; } catch(e) {}
             try { weeklyHistory = JSON.parse(localStorage.getItem("FE_WEEKLY_HISTORY")) || []; } catch(e) {}
 
-            const storedRoster = localStorage.getItem("FE_ROSTER");
-            if (storedRoster) {
-                ROSTER_DATABASE = JSON.parse(storedRoster);
-                migrateRosterIfNeeded();
-            } else {
-                ROSTER_DATABASE = {};
-                ALL_SLOT_KEYS.forEach(k => ROSTER_DATABASE[k] = null);
-                saveRoster();
+            if (!firestoreLoaded) {
+                const storedRoster = localStorage.getItem("FE_ROSTER");
+                if (storedRoster) {
+                    ROSTER_DATABASE = JSON.parse(storedRoster);
+                    migrateRosterIfNeeded();
+                } else {
+                    ROSTER_DATABASE = {};
+                    ALL_SLOT_KEYS.forEach(k => ROSTER_DATABASE[k] = null);
+                    saveRoster();
+                }
             }
         }
 
@@ -1401,10 +1407,13 @@
                             cred = await auth.createUserWithEmailAndPassword(ADMIN_EMAIL, ADMIN_PASS);
                         } else { throw e; }
                     }
-                    await db.collection("users").doc(cred.user.uid).set({
-                        email: ADMIN_EMAIL, clubName: "Victor FC", role: "admin",
-                        budget: 125.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
+                    const adminSnap = await db.collection("users").doc(cred.user.uid).get();
+                    if (!adminSnap.exists || !adminSnap.data().budget) {
+                        await db.collection("users").doc(cred.user.uid).set({
+                            email: ADMIN_EMAIL, clubName: "Victor FC", role: "admin",
+                            budget: 125.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    }
                     currentUser = { uid: cred.user.uid, email: ADMIN_EMAIL, role: "admin", clubName: "Victor FC" };
                 } else {
                     cred = await auth.signInWithEmailAndPassword(email, pass);
@@ -1562,8 +1571,8 @@
             }
         }
 
-        function bootstrapApp() {
-            try { loadAppData(); } catch(e) { console.error("loadAppData error:", e); try { localStorage.removeItem("FE_MARKET"); localStorage.removeItem("FE_ROSTER"); localStorage.removeItem("FE_PLAYER_DB_VERSION"); localStorage.removeItem("FE_LEADERBOARD"); localStorage.removeItem("FE_BUDGET"); localStorage.removeItem("FE_FORMATION"); loadAppData(); } catch(e2) { console.error("loadAppData retry failed:", e2); } }
+        function bootstrapApp(firestoreLoaded) {
+            try { loadAppData(firestoreLoaded); } catch(e) { console.error("loadAppData error:", e); try { localStorage.removeItem("FE_MARKET"); localStorage.removeItem("FE_ROSTER"); localStorage.removeItem("FE_PLAYER_DB_VERSION"); localStorage.removeItem("FE_LEADERBOARD"); localStorage.removeItem("FE_BUDGET"); localStorage.removeItem("FE_FORMATION"); loadAppData(false); } catch(e2) { console.error("loadAppData retry failed:", e2); } }
             document.getElementById("screen-login").classList.remove("active");
             document.getElementById("screen-register").classList.remove("active");
             document.getElementById("app").style.display = "block";
@@ -1586,19 +1595,19 @@
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     currentUser = { uid: user.uid, email: user.email, role: "user", clubName: user.email.split("@")[0].toUpperCase() + " FC" };
+                    let firestoreLoaded = false;
                     try {
                         const doc = await db.collection("users").doc(user.uid).get();
                         if (doc.exists) {
                             const d = doc.data();
                             currentUser.role = d.role || "user";
                             currentUser.clubName = d.clubName || currentUser.clubName;
-                            userBudget = d.budget || 125.0;
-                            currentFormation = d.formation || "4-3-3";
-                            if (d.budgetVersion !== 2) {
-                                userBudget = 125.0;
-                                db.collection("users").doc(user.uid).update({ budget: 125.0, budgetVersion: 2 });
+                            if (d.budget !== undefined && d.budget !== null) {
+                                userBudget = parseFloat(d.budget);
+                                if (isNaN(userBudget)) userBudget = 125.0;
                             }
-                            if (d.roster) { loadRosterFromFirestoreData(d); }
+                            currentFormation = d.formation || "4-3-3";
+                            if (d.roster) { loadRosterFromFirestoreData(d); firestoreLoaded = true; }
                             if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                             if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                             if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
@@ -1608,7 +1617,7 @@
                         }
                     } catch(e) { console.warn("Firestore load:", e); }
                     localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
-                    bootstrapApp();
+                    bootstrapApp(firestoreLoaded);
                 } else {
                     currentUser = null;
                     document.getElementById("app").style.display = "none";
@@ -2108,6 +2117,23 @@
             renderClubProfile();
             showNotification("Todos los jugadores liberados. Presupuesto: 125.0M", "success");
             console.log("✅ Limpieza completa. Todos los slots vacíos. Presupuesto: 125.0M");
+        };
+
+        window.diagnostico = function() {
+            const filled = ALL_SLOT_KEYS.filter(k => ROSTER_DATABASE[k]);
+            console.log("=== DIAGNÓSTICO ===");
+            console.log("Presupuesto:", userBudget.toFixed(1) + "M");
+            console.log("Plantilla (" + filled.length + "/16):");
+            filled.forEach(k => {
+                const p = ROSTER_DATABASE[k];
+                console.log("  " + k + ": " + p.name + " (" + p.pos + ") " + p.val + "M rating:" + p.rating);
+            });
+            const lsBudget = localStorage.getItem("FE_BUDGET");
+            const lsRoster = JSON.parse(localStorage.getItem("FE_ROSTER") || "{}");
+            const lsFilled = Object.keys(lsRoster).filter(k => lsRoster[k]);
+            console.log("localStorage budget:", lsBudget);
+            console.log("localStorage roster:", lsFilled.length + " jugadores");
+            return { budget: userBudget, jugadores: filled.length, slots: filled.map(k => ROSTER_DATABASE[k].name) };
         };
 
         function autoSubstitution() {
