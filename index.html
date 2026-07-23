@@ -1418,6 +1418,8 @@
                 } else {
                     cred = await auth.signInWithEmailAndPassword(email, pass);
                     currentUser = { uid: cred.user.uid, email: cred.user.email, role: "user", clubName: cred.user.email.split("@")[0].toUpperCase() + " FC" };
+                }
+                let firestoreLoaded = false;
                     try {
                         const doc = await db.collection("users").doc(cred.user.uid).get();
                         if (doc.exists) {
@@ -1425,7 +1427,7 @@
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
                         currentFormation = d.formation || "4-3-3";
-                        if (d.roster) { loadRosterFromFirestoreData(d); }
+                        if (d.roster) { loadRosterFromFirestoreData(d); firestoreLoaded = true; }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                         if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                         if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
@@ -1440,10 +1442,9 @@
                         });
                         }
                     } catch(fsErr) { console.warn("Firestore read error:", fsErr); }
-                }
                 localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
                 btn.disabled = false; btn.textContent = "ENTRAR";
-                bootstrapApp();
+                bootstrapApp(firestoreLoaded);
                 showNotification(isAdminLogin ? "Acceso autorizado." : `Bienvenido, mánager de ${currentUser.clubName}.`, "success");
             } catch (error) {
                 btn.disabled = false; btn.textContent = "ENTRAR";
@@ -1531,6 +1532,7 @@
                 const result = await auth.signInWithPopup(googleProvider);
                 const user = result.user;
                 currentUser = { uid: user.uid, email: user.email, role: "user", clubName: user.displayName || user.email.split("@")[0].toUpperCase() + " FC" };
+                let firestoreLoaded = false;
                 try {
                     const doc = await db.collection("users").doc(user.uid).get();
                     if (doc.exists) {
@@ -1538,7 +1540,7 @@
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
                         currentFormation = d.formation || "4-3-3";
-                        if (d.roster) { loadRosterFromFirestoreData(d); }
+                        if (d.roster) { loadRosterFromFirestoreData(d); firestoreLoaded = true; }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                         if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                         if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
@@ -1554,7 +1556,7 @@
                     }
                 } catch(fsErr) { console.warn("Firestore read error:", fsErr); }
                 localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
-                bootstrapApp();
+                bootstrapApp(firestoreLoaded);
                 showNotification(`Bienvenido, ${currentUser.clubName}.`, "success");
             } catch (error) {
                 let msg = "Error al iniciar sesión con Google.";
@@ -1568,7 +1570,14 @@
         }
 
         function bootstrapApp(firestoreLoaded) {
-            try { loadAppData(firestoreLoaded); } catch(e) { console.error("loadAppData error:", e); try { localStorage.removeItem("FE_MARKET"); localStorage.removeItem("FE_ROSTER"); localStorage.removeItem("FE_PLAYER_DB_VERSION"); localStorage.removeItem("FE_LEADERBOARD"); localStorage.removeItem("FE_BUDGET"); localStorage.removeItem("FE_FORMATION"); loadAppData(false); } catch(e2) { console.error("loadAppData retry failed:", e2); } }
+            try { loadAppData(firestoreLoaded); } catch(e) { console.error("loadAppData error:", e); try { localStorage.removeItem("FE_MARKET"); localStorage.removeItem("FE_ROSTER"); localStorage.removeItem("FE_PLAYER_DB_VERSION"); localStorage.removeItem("FE_LEADERBOARD"); localStorage.removeItem("FE_BUDGET"); localStorage.removeItem("FE_FORMATION"); loadAppData(firestoreLoaded); } catch(e2) { console.error("loadAppData retry failed:", e2); } }
+            for (const key of ALL_SLOT_KEYS) {
+                if (ROSTER_DATABASE[key]) {
+                    const entry = MARKET_DATABASE.find(p => p.id === ROSTER_DATABASE[key].id);
+                    if (entry) { entry.status = "ocupado"; entry.owner = currentUser ? currentUser.clubName : "User"; }
+                }
+            }
+            saveMarket();
             document.getElementById("screen-login").classList.remove("active");
             document.getElementById("screen-register").classList.remove("active");
             document.getElementById("app").style.display = "block";
