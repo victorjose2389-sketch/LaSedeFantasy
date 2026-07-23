@@ -1961,6 +1961,28 @@
             showNotification(`${player.name} vendido por ${salePrice.toFixed(1)}M. Saldo: ${userBudget.toFixed(1)}M`, "success");
         }
 
+        function sellAllPlayers() {
+            const totalPlayers = getSquadSize();
+            if (totalPlayers === 0) {
+                showNotification("No tienes jugadores para vender.", "error");
+                return;
+            }
+            if (!confirm("Vender TODOS los " + totalPlayers + " jugadores? Se reseteará tu presupuesto a 125.0M.")) return;
+            for (const key of ALL_SLOT_KEYS) {
+                if (ROSTER_DATABASE[key]) {
+                    const marketEntry = MARKET_DATABASE.find(p => p.id === ROSTER_DATABASE[key].id);
+                    if (marketEntry) { marketEntry.owner = "Libre"; marketEntry.status = "libre"; }
+                    logTransfer("sell", ROSTER_DATABASE[key], ROSTER_DATABASE[key].val);
+                    ROSTER_DATABASE[key] = null;
+                }
+            }
+            userBudget = 125.0;
+            saveRoster(); saveMarket(); saveBudget();
+            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
+            renderClubProfile();
+            showNotification("Plantilla vendida. Presupuesto reseteado a 125.0M.", "success");
+        }
+
         function autoSubstitution() {
             const starters = getStarterKeys();
             const benchKeys = getBenchKeys();
@@ -2296,17 +2318,17 @@
 
                 <div class="profile-section-title">⚽ Gestión de Plantilla</div>
                 <div style="display:flex; gap:10px; margin-bottom:12px; font-size:12px; color:var(--vt-text-dim);">
-                    <span style="font-weight:700; color:var(--vt-neon-cyan);">Titulares (${STARTER_COUNT})</span>
-                    <span>|</span>
-                    <span style="font-weight:700; color:var(--color-gold);">Suplentes (${benchSlots.length})</span>
+                    <span style="font-weight:700; color:var(--vt-neon-cyan);">Plantilla: ${Object.keys(ROSTER_DATABASE).filter(k => ROSTER_DATABASE[k]).length} / ${MAX_SQUAD_SIZE}</span>
                 </div>
-                <div style="margin-bottom:6px; font-size:11px; color:var(--vt-text-dim); font-weight:600;">TITULARES POR POSICIÓN</div>
+                <div style="margin-bottom:6px; font-size:11px; color:var(--vt-text-dim); font-weight:600;">JUGADORES POR POSICIÓN</div>
                 <div class="pos-group-section" id="club-por-section"></div>
                 <div class="pos-group-section" id="club-def-section"></div>
                 <div class="pos-group-section" id="club-med-section"></div>
                 <div class="pos-group-section" id="club-del-section"></div>
-                <div style="margin-bottom:6px; font-size:11px; color:var(--color-gold); font-weight:600;">BANCO (Prioridad de autosustitución 1→5)</div>
-                <div class="squad-mini-grid" id="club-bench-grid"></div>
+                <div class="squad-mini-grid" id="club-bench-grid" style="display:none;"></div>
+                <div style="margin-top:12px; margin-bottom:24px;">
+                    <button class="btn" style="width:100%; background:rgba(239,68,68,0.2); color:var(--color-red); border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:12px; font-weight:700; font-size:13px; transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.35)'; this.style.boxShadow='0 0 20px rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.2)'; this.style.boxShadow='none'" onclick="sellAllPlayers()">🗑️ Vender Todos los Jugadores y Resetear Presupuesto</button>
+                </div>
 
                 <div class="profile-section-title">📜 Historial de Mercado</div>
                 <div class="ql-card" style="padding:0; margin-bottom:24px;">
@@ -2346,31 +2368,29 @@
 
         function renderClubStarters() {
             const groups = [
-                { pos: "GK", elId: "club-por-section",  label: "Porteros",          sublabel: "POR", icon: "\u{1F9D8}", cls: "por" },
-                { pos: "DF", elId: "club-def-section",  label: "Defensas",          sublabel: "DEF", icon: "\u{1F6E1}\uFE0F", cls: "def" },
-                { pos: "MF", elId: "club-med-section",  label: "Mediocampistas",    sublabel: "MED", icon: "\u26A1", cls: "med" },
-                { pos: "FW", elId: "club-del-section",  label: "Delanteros",        sublabel: "DEL", icon: "\u26BD", cls: "del" }
+                { pos: "GK", elId: "club-por-section",  label: "Porteros",       sublabel: "POR", icon: "🧘", cls: "por" },
+                { pos: "DF", elId: "club-def-section",  label: "Defensas",       sublabel: "DEF", icon: "🛡️", cls: "def" },
+                { pos: "MF", elId: "club-med-section",  label: "Mediocampistas", sublabel: "MED", icon: "⚡", cls: "med" },
+                { pos: "FW", elId: "club-del-section",  label: "Delanteros",     sublabel: "DEL", icon: "⚽", cls: "del" }
             ];
-            const starters = getStarterKeys();
             for (const g of groups) {
                 const el = document.getElementById(g.elId);
                 if (!el) continue;
-                const slotKeys = starters.filter(k => getSlotPos(k) === g.pos);
+                const slotKeys = SLOT_DEFS.filter(s => s.pos === g.pos).map(s => s.key);
                 let filled = 0;
                 slotKeys.forEach(k => { if (ROSTER_DATABASE[k]) filled++; });
                 let cardsHtml = '';
                 slotKeys.forEach(key => {
                     const p = ROSTER_DATABASE[key];
                     if (p) {
-                        cardsHtml += '<div class="squad-mini-card" onclick="openMarketPlayerProfile(\'' + p.id + '\')"><div class="smc-rating">' + Math.floor((p.rating || 0) * 10) + '</div><div class="smc-name" title="' + p.name + '">' + p.name + '</div><div class="smc-pos">' + g.sublabel + ' \u00B7 ' + p.val.toFixed(1) + 'M</div><div class="smc-pts">' + (p.pts || 0) + ' pts</div><button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:9px;padding:3px 8px;border-radius:10px;margin-top:6px;width:100%;" onclick="event.stopPropagation();sellPlayerFromSquad(\'' + key + '\')">Vender ' + p.val.toFixed(1) + 'M</button></div>';
+                        cardsHtml += '<div class="squad-mini-card" onclick="openMarketPlayerProfile(\\'' + p.id + '\\')"><div class="smc-rating">' + Math.floor((p.rating || 0) * 10) + '</div><div class="smc-name" title="' + p.name + '">' + p.name + '</div><div class="smc-pos">' + g.sublabel + ' \u00B7 ' + p.val.toFixed(1) + 'M</div><div class="smc-pts">' + (p.pts || 0) + ' pts</div><button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:9px;padding:3px 8px;border-radius:10px;margin-top:6px;width:100%;" onclick="event.stopPropagation();sellPlayerFromSquad(\\'' + key + '\\')">Vender ' + p.val.toFixed(1) + 'M</button></div>';
                     } else {
-                        cardsHtml += '<div class="squad-mini-card empty-card"><div class="smc-rating">-</div><div class="smc-name">Vac\u00EDo</div><div class="smc-pos">' + g.sublabel + '</div><div class="smc-pts">Ficha desde el mercado</div></div>';
+                        cardsHtml += '<div class="squad-mini-card empty-card"><div class="smc-rating">-</div><div class="smc-name">Vac\u00EDo</div><div class="smc-pos">' + g.sublabel + '</div><div class="smc-pts">Slot disponible</div></div>';
                     }
                 });
                 el.innerHTML = '<div class="pos-group-header ' + g.cls + '"><span>' + g.icon + '</span><span class="pos-group-label">' + g.label + ' (' + g.sublabel + ')</span><span class="pos-group-count">' + filled + '/' + slotKeys.length + '</span></div><div class="squad-mini-grid">' + cardsHtml + '</div>';
             }
         }
-
         function renderClubBench() {
             const grid = document.getElementById("club-bench-grid");
             if (!grid) return;
