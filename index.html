@@ -300,7 +300,7 @@
         .pitch-lines .box-top { position: absolute; top: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-top: none; }
         .pitch-lines .box-bottom { position: absolute; bottom: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-bottom: none; }
         .pitch-rows { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-evenly; height: 100%; gap: 4px; padding: 10px 0; }
-        .pitch-row { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; }
+        .pitch-row { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 100%; }
         .pitch-row-label { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
         .pitch-slot { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; flex-shrink: 0; }
         .pitch-slot:hover { transform: scale(1.06); z-index: 10; }
@@ -509,6 +509,24 @@
             display: flex; align-items: center; gap: 10px;
         }
 
+
+        .pos-group-section { margin-bottom: 16px; }
+        .pos-group-header {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; font-weight: 700; margin-bottom: 8px;
+            padding: 6px 12px; border-radius: 8px;
+            border-left: 3px solid var(--vt-neon-cyan);
+            background: rgba(0,240,255,0.06);
+        }
+        .pos-group-header.por { border-left-color: var(--color-gold); background: rgba(251,191,36,0.06); }
+        .pos-group-header.def { border-left-color: var(--vt-neon-cyan); background: rgba(0,240,255,0.06); }
+        .pos-group-header.med { border-left-color: var(--vt-neon-purple); background: rgba(112,0,255,0.06); }
+        .pos-group-header.del { border-left-color: var(--color-emerald); background: rgba(0,255,135,0.06); }
+        .pos-group-header .pos-group-label { color: var(--vt-text-dim); }
+        .pos-group-header .pos-group-count {
+            margin-left: auto; font-size: 10px; padding: 2px 8px;
+            border-radius: 10px; background: rgba(255,255,255,0.08); color: var(--vt-text-dim);
+        }
         .squad-mini-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px; margin-bottom: 24px;
@@ -1684,6 +1702,7 @@
         }
 
         let _dragSourceKey = null;
+        const _posLabelsES = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
 
         function handleDragStart(e, slotKey) {
             _dragSourceKey = slotKey;
@@ -1713,7 +1732,7 @@
             const fromPos = getSlotPos(_dragSourceKey);
             const toPos = getSlotPos(targetKey);
             if (fromPos !== toPos) {
-                showNotification(`Posición no compatible: ${fromPos} → ${toPos}`, "error");
+                showNotification(`No puedes colocar un ${_posLabelsES[fromPos] || fromPos} en la posición de ${_posLabelsES[toPos] || toPos}. Solo se permiten intercambios entre la misma posición.`, "error");
                 _dragSourceKey = null;
                 return;
             }
@@ -1763,7 +1782,7 @@
                     const fromPos = getSlotPos(selectedPitchSlotKey);
                     const toPos = getSlotPos(slotKey);
                     if (fromPos !== toPos) {
-                        showNotification(`Posición no compatible: ${fromPos} → ${toPos}`, "error");
+                        showNotification(`No puedes colocar un ${_posLabelsES[fromPos] || fromPos} en la posición de ${_posLabelsES[toPos] || toPos}. Solo se permiten intercambios entre la misma posición.`, "error");
                         selectedPitchSlotKey = null;
                         renderTacticalBoard(); renderBench();
                         return;
@@ -2281,8 +2300,11 @@
                     <span>|</span>
                     <span style="font-weight:700; color:var(--color-gold);">Suplentes (${benchSlots.length})</span>
                 </div>
-                <div style="margin-bottom:6px; font-size:11px; color:var(--vt-text-dim); font-weight:600;">TITULARES</div>
-                <div class="squad-mini-grid" id="club-starters-grid"></div>
+                <div style="margin-bottom:6px; font-size:11px; color:var(--vt-text-dim); font-weight:600;">TITULARES POR POSICIÓN</div>
+                <div class="pos-group-section" id="club-por-section"></div>
+                <div class="pos-group-section" id="club-def-section"></div>
+                <div class="pos-group-section" id="club-med-section"></div>
+                <div class="pos-group-section" id="club-del-section"></div>
                 <div style="margin-bottom:6px; font-size:11px; color:var(--color-gold); font-weight:600;">BANCO (Prioridad de autosustitución 1→5)</div>
                 <div class="squad-mini-grid" id="club-bench-grid"></div>
 
@@ -2323,44 +2345,31 @@
         }
 
         function renderClubStarters() {
-            const grid = document.getElementById("club-starters-grid");
-            if (!grid) return;
-            grid.innerHTML = "";
+            const groups = [
+                { pos: "GK", elId: "club-por-section",  label: "Porteros",          sublabel: "POR", icon: "\u{1F9D8}", cls: "por" },
+                { pos: "DF", elId: "club-def-section",  label: "Defensas",          sublabel: "DEF", icon: "\u{1F6E1}\uFE0F", cls: "def" },
+                { pos: "MF", elId: "club-med-section",  label: "Mediocampistas",    sublabel: "MED", icon: "\u26A1", cls: "med" },
+                { pos: "FW", elId: "club-del-section",  label: "Delanteros",        sublabel: "DEL", icon: "\u26BD", cls: "del" }
+            ];
             const starters = getStarterKeys();
-            const posOrder = { GK: 0, DF: 1, MF: 2, FW: 3 };
-            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
-            const sorted = starters.slice().sort((a, b) => {
-                const pA = posOrder[getSlotPos(a)] || 0;
-                const pB = posOrder[getSlotPos(b)] || 0;
-                return pA - pB;
-            });
-            for (const key of sorted) {
-                const p = ROSTER_DATABASE[key];
-                const slotPos = getSlotPos(key);
-                const posLabel = posLabels[slotPos] || slotPos;
-                if (p) {
-                    grid.insertAdjacentHTML("beforeend", `
-                        <div class="squad-mini-card" onclick="openMarketPlayerProfile('${p.id}')">
-                            <div class="smc-rating">${Math.floor((p.rating || 0) * 10)}</div>
-                            <div class="smc-name" title="${p.name}">${p.name}</div>
-                            <div class="smc-pos">${posLabel} · ${p.val.toFixed(1)}M</div>
-                            <div class="smc-pts">${p.pts || 0} pts</div>
-                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); color:var(--color-red); border:1px solid rgba(239,68,68,0.3); font-size:9px; padding:3px 8px; border-radius:10px; margin-top:6px; width:100%;" onclick="event.stopPropagation(); sellPlayerFromSquad('${key}')">Vender ${p.val.toFixed(1)}M</button>
-                        </div>
-                    `);
-                } else {
-                    grid.insertAdjacentHTML("beforeend", `
-                        <div class="squad-mini-card empty-card">
-                            <div class="smc-rating">-</div>
-                            <div class="smc-name">Vacío</div>
-                            <div class="smc-pos">${posLabel}</div>
-                            <div class="smc-pts">Ficha desde el mercado</div>
-                        </div>
-                    `);
-                }
+            for (const g of groups) {
+                const el = document.getElementById(g.elId);
+                if (!el) continue;
+                const slotKeys = starters.filter(k => getSlotPos(k) === g.pos);
+                let filled = 0;
+                slotKeys.forEach(k => { if (ROSTER_DATABASE[k]) filled++; });
+                let cardsHtml = '';
+                slotKeys.forEach(key => {
+                    const p = ROSTER_DATABASE[key];
+                    if (p) {
+                        cardsHtml += '<div class="squad-mini-card" onclick="openMarketPlayerProfile(\'' + p.id + '\')"><div class="smc-rating">' + Math.floor((p.rating || 0) * 10) + '</div><div class="smc-name" title="' + p.name + '">' + p.name + '</div><div class="smc-pos">' + g.sublabel + ' \u00B7 ' + p.val.toFixed(1) + 'M</div><div class="smc-pts">' + (p.pts || 0) + ' pts</div><button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:9px;padding:3px 8px;border-radius:10px;margin-top:6px;width:100%;" onclick="event.stopPropagation();sellPlayerFromSquad(\'' + key + '\')">Vender ' + p.val.toFixed(1) + 'M</button></div>';
+                    } else {
+                        cardsHtml += '<div class="squad-mini-card empty-card"><div class="smc-rating">-</div><div class="smc-name">Vac\u00EDo</div><div class="smc-pos">' + g.sublabel + '</div><div class="smc-pts">Ficha desde el mercado</div></div>';
+                    }
+                });
+                el.innerHTML = '<div class="pos-group-header ' + g.cls + '"><span>' + g.icon + '</span><span class="pos-group-label">' + g.label + ' (' + g.sublabel + ')</span><span class="pos-group-count">' + filled + '/' + slotKeys.length + '</span></div><div class="squad-mini-grid">' + cardsHtml + '</div>';
             }
         }
-
 
         function renderClubBench() {
             const grid = document.getElementById("club-bench-grid");
