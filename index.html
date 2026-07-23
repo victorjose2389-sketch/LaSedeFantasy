@@ -299,8 +299,8 @@
         .pitch-lines .mid-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #fff; }
         .pitch-lines .box-top { position: absolute; top: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-top: none; }
         .pitch-lines .box-bottom { position: absolute; bottom: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-bottom: none; }
-        .pitch-rows { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; gap: 8px; }
-        .pitch-row { display: flex; justify-content: center; align-items: center; gap: 12px; width: 100%; }
+        .pitch-rows { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-evenly; height: 100%; gap: 4px; padding: 10px 0; }
+        .pitch-row { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; }
         .pitch-row-label { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
         .pitch-slot { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; flex-shrink: 0; }
         .pitch-slot:hover { transform: scale(1.06); z-index: 10; }
@@ -308,10 +308,15 @@
         .pitch-slot.drag-over { outline: 2px dashed var(--color-gold); outline-offset: 4px; border-radius: 10px; }
         .pitch-slot.dragging { opacity: 0.4; }
         .pitch-slot.empty-slot .fc-card {
-            border-style: dashed; background: rgba(0,0,0,0.3);
-            opacity: 0.5;
+            border-style: dashed; background: rgba(0,0,0,0.35);
+            opacity: 0.7;
+            transition: all 0.2s ease;
         }
-        .pitch-slot.empty-slot .fc-card:hover { opacity: 0.8; }
+        .pitch-slot.empty-slot .fc-card:hover {
+            opacity: 1;
+            border-color: var(--vt-neon-cyan);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+        }
 
         .fc-card {
             width: 75px; height: 105px;
@@ -908,8 +913,9 @@
                                 <option value="5-3-2">5-3-2</option>
                             </select>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--vt-text-dim); margin-bottom:10px;">
-                            <span>Bench</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--vt-text-dim); margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                            <span style="font-weight:700; color:var(--color-gold);">BANCO (5 Suplentes)</span>
+                            <span style="font-size:9px; opacity:0.6;">Arrastra para intercambiar</span>
                         </div>
                         <div id="bench-root" style="display:flex; flex-direction:column;"></div>
                         <button class="btn btn-glow" style="width:100%; margin-top:20px; border-radius:20px;">Guardar Alineación</button>
@@ -1726,46 +1732,55 @@
             if (!root) return;
             root.innerHTML = "";
             const benchKeys = getBenchKeys();
-            const posGroups = { GK: [], DF: [], MF: [], FW: [] };
-            for (const k of benchKeys) { const p = ROSTER_DATABASE[k]; const pos = getSlotPos(k); if (pos) posGroups[pos].push(k); }
             const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
-            for (const pos of ["GK", "DF", "MF", "FW"]) {
-                const slots = posGroups[pos];
-                if (slots.length === 0) continue;
-                root.insertAdjacentHTML("beforeend", `<div style="font-size:9px;font-weight:700;color:var(--vt-text-dim);text-transform:uppercase;letter-spacing:1px;padding:8px 12px 4px;">${posLabels[pos]} (${slots.length})</div>`);
-                for (const slotKey of slots) {
-                    const player = ROSTER_DATABASE[slotKey];
-                    if (!player) {
-                        root.insertAdjacentHTML("beforeend", `
-                            <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;color:var(--vt-text-dim);display:flex;align-items:center;gap:8px;opacity:0.4;"
-                                 ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,'${slotKey}')">
-                                <span>Vacío — ${posLabels[pos]}</span>
-                            </div>
-                        `);
-                        continue;
-                    }
-                    const tier = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
-                    const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
+            root.insertAdjacentHTML("beforeend", `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px;">`);
+            benchKeys.forEach((slotKey, idx) => {
+                const player = ROSTER_DATABASE[slotKey];
+                const slotPos = getSlotPos(slotKey);
+                const posLabel = posLabels[slotPos] || slotPos;
+                if (!player) {
                     root.insertAdjacentHTML("beforeend", `
-                        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);"
+                        <div class="bench-slot-empty"
                              draggable="true"
                              ondragstart="handleDragStart(event,'${slotKey}')"
                              ondragover="handleDragOver(event)"
                              ondragleave="handleDragLeave(event)"
-                             ondrop="handleDrop(event,'${slotKey}')">
-                            <div class="fc-card ${tier} ${isSelected}" style="width:38px;height:50px;min-width:38px;transform:none;cursor:pointer;" onclick="handleSlotSelection('${slotKey}')">
-                                <div style="padding:3px;"><span class="card-rating" style="font-size:11px;">${Math.floor(player.rating * 10)}</span><span class="card-pos" style="font-size:7px;">${player.pos}</span></div>
+                             ondrop="handleDrop(event,'${slotKey}')"
+                             onclick="handleSlotSelection('${slotKey}')"
+                             style="background:rgba(0,0,0,0.4);border:1px dashed rgba(255,255,255,0.2);border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;opacity:0.75;"
+                             onmouseover="this.style.opacity='1';this.style.borderColor='rgba(0,240,255,0.5)';this.style.boxShadow='0 0 10px rgba(0,240,255,0.2)'"
+                             onmouseout="this.style.opacity='0.75';this.style.borderColor='rgba(255,255,255,0.2)';this.style.boxShadow='none'">
+                            <div style="font-size:8px;color:var(--vt-text-dim);font-weight:700;margin-bottom:2px;">#${idx + 1}</div>
+                            <div style="font-size:10px;font-weight:700;color:var(--vt-neon-cyan);margin-bottom:2px;">${posLabel}</div>
+                            <div style="font-size:14px;margin-bottom:2px;">+</div>
+                            <div style="font-size:7px;color:var(--vt-text-dim);">Vacío</div>
+                        </div>
+                    `);
+                } else {
+                    const tier = player.rating >= 9.0 ? "legendary-card" : (player.rating >= 8.5 ? "special-card" : (player.rating >= 8.0 ? "gold-card" : ""));
+                    const isSelected = selectedPitchSlotKey === slotKey;
+                    root.insertAdjacentHTML("beforeend", `
+                        <div class="bench-slot-filled"
+                             draggable="true"
+                             ondragstart="handleDragStart(event,'${slotKey}')"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event,'${slotKey}')"
+                             style="background:rgba(255,255,255,0.03);border:1px solid ${isSelected ? 'var(--color-gold)' : 'rgba(255,255,255,0.1)'};border-radius:8px;padding:6px 2px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;${isSelected ? 'box-shadow:0 0 12px rgba(251,191,36,0.3);' : ''}"
+                             onmouseover="this.style.borderColor='var(--vt-neon-cyan)';this.style.transform='translateY(-2px)'"
+                             onmouseout="this.style.borderColor='${isSelected ? 'var(--color-gold)' : 'rgba(255,255,255,0.1)'}';this.style.transform='none'">
+                            <div style="font-size:8px;color:var(--vt-text-dim);font-weight:700;margin-bottom:2px;">#${idx + 1}</div>
+                            <div class="fc-card ${tier}" style="width:36px;height:44px;min-width:36px;transform:none;margin-bottom:4px;" onclick="handleSlotSelection('${slotKey}')">
+                                <div style="padding:2px;"><span class="card-rating" style="font-size:11px;">${Math.floor(player.rating * 10)}</span><span class="card-pos" style="font-size:6px;">${player.pos}</span></div>
                                 <div style="font-size:7px;font-weight:600;">${player.initials}</div>
                             </div>
-                            <div style="flex:1;min-width:0;">
-                                <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${player.name}</div>
-                                <div style="font-size:10px;color:var(--vt-text-dim);">Rating ${player.rating} · ${player.val.toFixed(1)}M</div>
-                            </div>
-                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:10px;padding:4px 10px;border-radius:12px;white-space:nowrap;" onclick="event.stopPropagation();sellPlayerFromSquad('${slotKey}')">Vender ${player.val.toFixed(1)}M</button>
+                            <div style="font-size:8px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:55px;" title="${player.name}">${player.name.split(' ').pop()}</div>
+                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:var(--color-red);border:1px solid rgba(239,68,68,0.3);font-size:7px;padding:2px 4px;border-radius:8px;white-space:nowrap;margin-top:2px;width:100%;" onclick="event.stopPropagation();sellPlayerFromSquad('${slotKey}')">Vender</button>
                         </div>
                     `);
                 }
-            }
+            });
+            root.insertAdjacentHTML("beforeend", `</div>`);
         }
 
         function handleSlotSelection(slotKey) {
