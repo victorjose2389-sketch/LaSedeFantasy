@@ -300,7 +300,7 @@
         .pitch-lines .box-top { position: absolute; top: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-top: none; }
         .pitch-lines .box-bottom { position: absolute; bottom: 0; left: 25%; right: 25%; height: 100px; border: 2px solid #fff; border-bottom: none; }
         .pitch-rows { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-evenly; height: 100%; gap: 4px; padding: 10px 0; }
-        .pitch-row { display: flex; justify-content: center; align-items: center; gap: 1rem; width: 100%; }
+        .pitch-row, .fila-tactica { display: flex !important; justify-content: center !important; align-items: center !important; gap: 1.5rem !important; width: 100% !important; margin: 0.5rem 0 !important; }
         .pitch-row-label { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
         .pitch-slot { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; flex-shrink: 0; }
         .pitch-slot:hover { transform: scale(1.06); z-index: 10; }
@@ -1647,7 +1647,6 @@
                 rowDiv.className = "pitch-row";
                 for (let i = 0; i < row.count; i++) {
                     const slotKey = posSlotKeys[row.pos][slotIdx[row.pos] + i];
-                    slotIdx[row.pos]++;
                     if (!slotKey) continue;
                     const player = ROSTER_DATABASE[slotKey];
                     const isSelected = selectedPitchSlotKey === slotKey ? "selected" : "";
@@ -1696,6 +1695,7 @@
                         `);
                     }
                 }
+                slotIdx[row.pos] += row.count;
                 rowWrap.appendChild(rowDiv);
                 root.appendChild(rowWrap);
             }
@@ -1732,7 +1732,7 @@
             const fromPos = getSlotPos(_dragSourceKey);
             const toPos = getSlotPos(targetKey);
             if (fromPos !== toPos) {
-                showNotification(`No puedes colocar un ${_posLabelsES[fromPos] || fromPos} en la posición de ${_posLabelsES[toPos] || toPos}. Solo se permiten intercambios entre la misma posición.`, "error");
+                showNotification(`Posición no permitida: ${_posLabelsES[fromPos] || fromPos} → ${_posLabelsES[toPos] || toPos}.`, "error");
                 _dragSourceKey = null;
                 return;
             }
@@ -1782,7 +1782,7 @@
                     const fromPos = getSlotPos(selectedPitchSlotKey);
                     const toPos = getSlotPos(slotKey);
                     if (fromPos !== toPos) {
-                        showNotification(`No puedes colocar un ${_posLabelsES[fromPos] || fromPos} en la posición de ${_posLabelsES[toPos] || toPos}. Solo se permiten intercambios entre la misma posición.`, "error");
+                        showNotification(`Posición no permitida: ${_posLabelsES[fromPos] || fromPos} → ${_posLabelsES[toPos] || toPos}.`, "error");
                         selectedPitchSlotKey = null;
                         renderTacticalBoard(); renderBench();
                         return;
