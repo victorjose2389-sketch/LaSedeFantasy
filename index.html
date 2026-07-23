@@ -2300,7 +2300,7 @@
                         <div class="fc-icon">👥</div>
                         <div class="fc-label">Valor Plantilla</div>
                         <div class="fc-value gold">${squadVal.toFixed(1)}M €</div>
-                        <div class="fc-sub">${Object.keys(ROSTER_DATABASE).length} / ${MAX_SQUAD_SIZE} jugadores</div>
+                        <div class="fc-sub">${Object.keys(ROSTER_DATABASE).filter(k => ROSTER_DATABASE[k]).length} / ${MAX_SQUAD_SIZE} jugadores</div>
                     </div>
                     <div class="finance-card">
                         <div class="fc-icon">🏦</div>
