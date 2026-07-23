@@ -1115,7 +1115,7 @@
         let GLOBAL_LEADERBOARD = {};
         const MAX_SQUAD_SIZE = 16;
         const STARTER_COUNT = 11;
-        let userBudget = 125.0;
+        const BUDGET_BASE = 125.0;
         let currentUser = null;
         let activeRankingTab = "general";
         let selectedPitchSlotKey = null;
@@ -1238,7 +1238,6 @@
             }
 
             if (!firestoreLoaded) {
-                userBudget = parseFloat(localStorage.getItem("FE_BUDGET")) || 125.0;
                 currentFormation = localStorage.getItem("FE_FORMATION") || "4-3-3";
             }
 
@@ -1291,7 +1290,7 @@
 
         function saveRoster() { localStorage.setItem("FE_ROSTER", JSON.stringify(ROSTER_DATABASE)); saveUserDataToFirestore(); }
         function saveMarket() { localStorage.setItem("FE_MARKET", JSON.stringify(MARKET_DATABASE)); }
-        function saveBudget() { localStorage.setItem("FE_BUDGET", userBudget.toFixed(1)); saveUserDataToFirestore(); }
+        function saveBudget() { saveUserDataToFirestore(); }
         function saveFormation() { localStorage.setItem("FE_FORMATION", currentFormation); saveUserDataToFirestore(); }
         function saveLeaderboard() { localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD)); }
         function saveClubProfile() { localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); saveUserDataToFirestore(); }
@@ -1327,7 +1326,7 @@
             for (let key in ROSTER_DATABASE) {
                 if (ROSTER_DATABASE[key]) squadVal += ROSTER_DATABASE[key].val || 0;
             }
-            return userBudget + squadVal;
+            return getBudget() + squadVal;
         }
 
         function getSquadValue() {
@@ -1337,6 +1336,7 @@
             }
             return val;
         }
+        function getBudget() { return BUDGET_BASE - getSquadValue(); }
 
         function getTotalPoints() {
             let pts = 0;
@@ -1380,7 +1380,7 @@
             try {
                 db.collection("users").doc(currentUser.uid).set({
                     email: currentUser.email, clubName: currentUser.clubName, role: currentUser.role || "user",
-                    budget: userBudget, formation: currentFormation, roster: ROSTER_DATABASE,
+                    budget: getBudget(), formation: currentFormation, roster: ROSTER_DATABASE,
                     clubProfile: clubProfile, transferHistory: transferHistory, weeklyHistory: weeklyHistory
                 }, { merge: true });
             } catch(e) { console.warn("Firestore save:", e); }
@@ -1424,13 +1424,11 @@
                             const d = doc.data();
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
-                        userBudget = d.budget || 125.0;
                         currentFormation = d.formation || "4-3-3";
                         if (d.roster) { loadRosterFromFirestoreData(d); }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                         if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                         if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
-                        localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
                         localStorage.setItem("FE_FORMATION", currentFormation);
                     } else {
                         await db.collection("users").doc(cred.user.uid).set({
@@ -1539,13 +1537,11 @@
                         const d = doc.data();
                         currentUser.role = d.role || "user";
                         currentUser.clubName = d.clubName || currentUser.clubName;
-                        userBudget = d.budget || 125.0;
                         currentFormation = d.formation || "4-3-3";
                         if (d.roster) { loadRosterFromFirestoreData(d); }
                         if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                         if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                         if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
-                        localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
                         localStorage.setItem("FE_FORMATION", currentFormation);
                     } else {
                         await db.collection("users").doc(user.uid).set({
@@ -1588,6 +1584,7 @@
             populateMarketFilters();
             applyMarketFilters();
             renderRankingTable();
+            window.repairOrphanedPlayers();
             saveUserDataToFirestore();
         }
 
@@ -1602,17 +1599,12 @@
                             const d = doc.data();
                             currentUser.role = d.role || "user";
                             currentUser.clubName = d.clubName || currentUser.clubName;
-                            if (d.budget !== undefined && d.budget !== null) {
-                                userBudget = parseFloat(d.budget);
-                                if (isNaN(userBudget)) userBudget = 125.0;
-                            }
                             currentFormation = d.formation || "4-3-3";
                             if (d.roster) { loadRosterFromFirestoreData(d); firestoreLoaded = true; }
                             if (d.clubProfile) { clubProfile = d.clubProfile; localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile)); }
                             if (d.transferHistory) { transferHistory = d.transferHistory; localStorage.setItem("FE_TRANSFER_HISTORY", JSON.stringify(transferHistory)); }
                             if (d.weeklyHistory) { weeklyHistory = d.weeklyHistory; localStorage.setItem("FE_WEEKLY_HISTORY", JSON.stringify(weeklyHistory)); }
                             if (!clubProfile.teamName && currentUser.clubName) { clubProfile.teamName = currentUser.clubName; saveClubProfile(); }
-                            localStorage.setItem("FE_BUDGET", userBudget.toFixed(1));
                             localStorage.setItem("FE_FORMATION", currentFormation);
                         }
                     } catch(e) { console.warn("Firestore load:", e); }
@@ -2031,8 +2023,8 @@
                 showNotification(`Plantilla llena (${MAX_SQUAD_SIZE}/${MAX_SQUAD_SIZE}). Vende un jugador primero.`, "error");
                 return;
             }
-            if (userBudget < player.val) {
-                showNotification(`Presupuesto insuficiente. Necesitas ${player.val.toFixed(1)}M y tienes ${userBudget.toFixed(1)}M.`, "error");
+            if (getBudget() < player.val) {
+                showNotification(`Presupuesto insuficiente. Necesitas ${player.val.toFixed(1)}M y tienes ${getBudget().toFixed(1)}M.`, "error");
                 return;
             }
             const currentPosCount = posCount(player.pos);
@@ -2045,20 +2037,33 @@
             const slot = getNextAvailableSlot(player.pos);
             if (!slot) return;
 
-            userBudget -= player.val;
-            player.owner = currentUser ? currentUser.clubName : "User";
-            player.status = "ocupado";
+            const _prevRoster = JSON.parse(JSON.stringify(ROSTER_DATABASE));
+            const _prevMarketOwner = player.owner;
+            const _prevMarketStatus = player.status;
 
-            ROSTER_DATABASE[slot] = {
-                id: player.id, name: player.name, initials: player.initials,
-                teamId: player.teamId, pos: player.pos, rating: player.rating,
-                val: player.val, pts: player.rating, ptsUcl: 0, ptsLiga: 0, cap: ""
-            };
+            try {
+                player.owner = currentUser ? currentUser.clubName : "User";
+                player.status = "ocupado";
 
-            logTransfer("buy", player, player.val);
-            saveMarket(); saveBudget(); saveRoster();
-            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar(); renderSquadPanel();
-            showNotification(`¡Fichaje oficializado! ${player.name} → ${slot.toUpperCase()} (${squadSize + 1}/${MAX_SQUAD_SIZE}). Saldo: ${userBudget.toFixed(1)}M`, "success");
+                ROSTER_DATABASE[slot] = {
+                    id: player.id, name: player.name, initials: player.initials,
+                    teamId: player.teamId, pos: player.pos, rating: player.rating,
+                    val: player.val, pts: player.rating, ptsUcl: 0, ptsLiga: 0, cap: ""
+                };
+
+                if (getBudget() < 0) throw new Error("Presupuesto negativo tras fichaje");
+
+                logTransfer("buy", player, player.val);
+                saveMarket(); saveRoster();
+                updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar(); renderSquadPanel();
+                showNotification(`¡Fichaje oficializado! ${player.name} → ${slot.toUpperCase()} (${squadSize + 1}/${MAX_SQUAD_SIZE}). Saldo: ${getBudget().toFixed(1)}M`, "success");
+            } catch(e) {
+                ROSTER_DATABASE = _prevRoster;
+                player.owner = _prevMarketOwner;
+                player.status = _prevMarketStatus;
+                showNotification("Error al fichar. Operación revertida.", "error");
+                console.error("buyFreeAgent rollback:", e);
+            }
         }
 
         function sellPlayerFromSquad(slotKey) {
@@ -2076,13 +2081,12 @@
             }
 
             ROSTER_DATABASE[slotKey] = null;
-            userBudget += salePrice;
 
             logTransfer("sell", player, salePrice);
-            saveRoster(); saveMarket(); saveBudget();
+            saveRoster(); saveMarket();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
             renderTacticalBoard(); renderBench(); renderSquadPanel();
-            showNotification(`${player.name} vendido por ${salePrice.toFixed(1)}M. Saldo: ${userBudget.toFixed(1)}M`, "success");
+            showNotification(`${player.name} vendido por ${salePrice.toFixed(1)}M. Saldo: ${getBudget().toFixed(1)}M`, "success");
         }
 
         function sellAllPlayers() {
@@ -2100,8 +2104,7 @@
                     ROSTER_DATABASE[key] = null;
                 }
             }
-            userBudget = 125.0;
-            saveRoster(); saveMarket(); saveBudget();
+            saveRoster(); saveMarket();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
             renderClubProfile(); renderSquadPanel();
             showNotification("Plantilla vendida. Presupuesto reseteado a 125.0M.", "success");
@@ -2110,30 +2113,51 @@
         window.forceReleaseAll = function() {
             for (const key of ALL_SLOT_KEYS) { ROSTER_DATABASE[key] = null; }
             for (const p of MARKET_DATABASE) { p.owner = "Libre"; p.status = "libre"; }
-            userBudget = 125.0;
-            saveRoster(); saveMarket(); saveBudget();
+            saveRoster(); saveMarket();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
             renderTacticalBoard(); renderBench(); renderSquadPanel();
             renderClubProfile();
             showNotification("Todos los jugadores liberados. Presupuesto: 125.0M", "success");
-            console.log("✅ Limpieza completa. Todos los slots vacíos. Presupuesto: 125.0M");
+            console.log("Limpieza completa. Todos los slots vacíos. Presupuesto: 125.0M");
         };
 
         window.diagnostico = function() {
             const filled = ALL_SLOT_KEYS.filter(k => ROSTER_DATABASE[k]);
             console.log("=== DIAGNÓSTICO ===");
-            console.log("Presupuesto:", userBudget.toFixed(1) + "M");
+            console.log("Presupuesto:", getBudget().toFixed(1) + "M (base:", BUDGET_BASE + ", squadValue:", getSquadValue().toFixed(1) + ")");
             console.log("Plantilla (" + filled.length + "/16):");
             filled.forEach(k => {
                 const p = ROSTER_DATABASE[k];
                 console.log("  " + k + ": " + p.name + " (" + p.pos + ") " + p.val + "M rating:" + p.rating);
             });
-            const lsBudget = localStorage.getItem("FE_BUDGET");
-            const lsRoster = JSON.parse(localStorage.getItem("FE_ROSTER") || "{}");
-            const lsFilled = Object.keys(lsRoster).filter(k => lsRoster[k]);
-            console.log("localStorage budget:", lsBudget);
-            console.log("localStorage roster:", lsFilled.length + " jugadores");
-            return { budget: userBudget, jugadores: filled.length, slots: filled.map(k => ROSTER_DATABASE[k].name) };
+            return { budget: getBudget(), jugadores: filled.length, slots: filled.map(k => ROSTER_DATABASE[k].name) };
+        };
+
+        window.repairOrphanedPlayers = function() {
+            const rosterIds = new Set();
+            for (const key of ALL_SLOT_KEYS) {
+                if (ROSTER_DATABASE[key]) rosterIds.add(ROSTER_DATABASE[key].id);
+            }
+            let released = [];
+            for (const p of MARKET_DATABASE) {
+                const owned = (p.owner && p.owner !== "Libre" && p.owner !== " libre") || p.status === "ocupado";
+                const inRoster = rosterIds.has(p.id);
+                if (owned && !inRoster) {
+                    p.owner = "Libre";
+                    p.status = "libre";
+                    released.push(p.name);
+                }
+            }
+            if (released.length > 0) {
+                saveMarket();
+                showNotification(`Reparados ${released.length} jugadores huérfanos: ${released.join(", ")}. Budget recalculado a ${getBudget().toFixed(1)}M.`, "success");
+                console.log("Orphaned players repaired:", released);
+            } else {
+                showNotification("No se encontraron jugadores huérfanos. Todo OK.", "success");
+            }
+            updateBudgetDisplays();
+            applyMarketFilters();
+            return released;
         };
 
         function autoSubstitution() {
@@ -2240,7 +2264,7 @@
             const sc = document.getElementById("header-squad-count"); if (sc) sc.innerText = `${squadCount}/${MAX_SQUAD_SIZE}`;
         }
         function updateBudgetDisplays() {
-            const hb = document.getElementById("header-budget"); if (hb) hb.innerText = `${userBudget.toFixed(1)}M`;
+            const hb = document.getElementById("header-budget"); if (hb) hb.innerText = `${getBudget().toFixed(1)}M`;
         }
         function updateDashboard() {
             if (!currentUser) return;
@@ -2331,7 +2355,7 @@
             const data = {
                 roster: ROSTER_DATABASE,
                 market: MARKET_DATABASE,
-                budget: userBudget,
+                budget: getBudget(),
                 formation: currentFormation,
                 leaderboard: GLOBAL_LEADERBOARD,
                 clubProfile: clubProfile,
@@ -2407,7 +2431,7 @@
             const avatarEmoji = clubProfile.avatar || "⚽";
             const initials = teamName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
 
-            const budget = userBudget;
+            const budget = getBudget();
             const squadVal = getSquadValue();
             const patrimony = getClubPatrimony();
             const totalPts = getTotalPoints();
