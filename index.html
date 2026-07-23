@@ -848,7 +848,7 @@
                 </div>
                 <div class="ql-budget-display">
                     <div class="ql-budget-label">Presupuesto</div>
-                    <div class="ql-budget-value" id="header-budget">125.0M</div>
+                    <div class="ql-budget-value" id="header-budget">140.0M</div>
                 </div>
                 <div class="ql-user-profile" onclick="logoutUser()">
                     <div class="ql-avatar" id="header-avatar">QU</div>
@@ -1115,7 +1115,7 @@
         let GLOBAL_LEADERBOARD = {};
         const MAX_SQUAD_SIZE = 16;
         const STARTER_COUNT = 11;
-        const BUDGET_BASE = 125.0;
+        const BUDGET_BASE = 140.0;
         let currentUser = null;
         let activeRankingTab = "general";
         let selectedPitchSlotKey = null;
@@ -1215,14 +1215,14 @@
         let _debounceTimer = null;
 
         function loadAppData(firestoreLoaded) {
-            const PLAYER_DB_VERSION = "3.1";
+            const PLAYER_DB_VERSION = "4.0";
             const storedVersion = localStorage.getItem("FE_PLAYER_DB_VERSION");
             if (storedVersion !== PLAYER_DB_VERSION) {
                 localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
                 localStorage.setItem("FE_PLAYER_DB_VERSION", PLAYER_DB_VERSION);
             }
             if (!localStorage.getItem("FE_MARKET")) localStorage.setItem("FE_MARKET", JSON.stringify(STAR_PLAYERS_POOL));
-            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "125.0");
+            if (!localStorage.getItem("FE_BUDGET")) localStorage.setItem("FE_BUDGET", "140.0");
             if (!localStorage.getItem("FE_FORMATION")) localStorage.setItem("FE_FORMATION", "4-3-3");
             if (!localStorage.getItem("FE_LEADERBOARD")) localStorage.setItem("FE_LEADERBOARD", JSON.stringify(GLOBAL_LEADERBOARD_FALLBACK));
             if (!localStorage.getItem("FE_CLUB_PROFILE")) localStorage.setItem("FE_CLUB_PROFILE", JSON.stringify(clubProfile));
@@ -1411,7 +1411,7 @@
                     if (!adminSnap.exists || !adminSnap.data().budget) {
                         await db.collection("users").doc(cred.user.uid).set({
                             email: ADMIN_EMAIL, clubName: "Victor FC", role: "admin",
-                            budget: 125.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            budget: 140.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         }, { merge: true });
                     }
                     currentUser = { uid: cred.user.uid, email: ADMIN_EMAIL, role: "admin", clubName: "Victor FC" };
@@ -1433,7 +1433,7 @@
                     } else {
                         await db.collection("users").doc(cred.user.uid).set({
                             email: cred.user.email, clubName: currentUser.clubName, role: "user",
-                            budget: 125.0, formation: "4-3-3",
+                            budget: 140.0, formation: "4-3-3",
                             clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
                             transferHistory: [], weeklyHistory: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1473,7 +1473,7 @@
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 await db.collection("users").doc(cred.user.uid).set({
                     email: email, clubName: club, role: "user",
-                    budget: 125.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    budget: 140.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 currentUser = { uid: cred.user.uid, email: email, role: "user", clubName: club };
                 localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
@@ -1546,7 +1546,7 @@
                     } else {
                         await db.collection("users").doc(user.uid).set({
                             email: user.email, clubName: currentUser.clubName, role: "user",
-                            budget: 125.0, formation: "4-3-3",
+                            budget: 140.0, formation: "4-3-3",
                             clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
                             transferHistory: [], weeklyHistory: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2095,7 +2095,7 @@
                 showNotification("No tienes jugadores para vender.", "error");
                 return;
             }
-            if (!confirm("Vender TODOS los " + totalPlayers + " jugadores? Se reseteará tu presupuesto a 125.0M.")) return;
+            if (!confirm("Vender TODOS los " + totalPlayers + " jugadores? Se reseteará tu presupuesto a 140.0M.")) return;
             for (const key of ALL_SLOT_KEYS) {
                 if (ROSTER_DATABASE[key]) {
                     const marketEntry = MARKET_DATABASE.find(p => p.id === ROSTER_DATABASE[key].id);
@@ -2107,7 +2107,7 @@
             saveRoster(); saveMarket();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
             renderClubProfile(); renderSquadPanel();
-            showNotification("Plantilla vendida. Presupuesto reseteado a 125.0M.", "success");
+            showNotification("Plantilla vendida. Presupuesto reseteado a 140.0M.", "success");
         }
 
         window.forceReleaseAll = function() {
@@ -2117,8 +2117,8 @@
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
             renderTacticalBoard(); renderBench(); renderSquadPanel();
             renderClubProfile();
-            showNotification("Todos los jugadores liberados. Presupuesto: 125.0M", "success");
-            console.log("Limpieza completa. Todos los slots vacíos. Presupuesto: 125.0M");
+            showNotification("Todos los jugadores liberados. Presupuesto: 140.0M", "success");
+            console.log("Limpieza completa. Todos los slots vacíos. Presupuesto: 140.0M");
         };
 
         window.diagnostico = function() {
