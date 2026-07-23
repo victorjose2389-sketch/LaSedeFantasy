@@ -2098,6 +2098,18 @@
             showNotification("Plantilla vendida. Presupuesto reseteado a 125.0M.", "success");
         }
 
+        window.forceReleaseAll = function() {
+            for (const key of ALL_SLOT_KEYS) { ROSTER_DATABASE[key] = null; }
+            for (const p of MARKET_DATABASE) { p.owner = "Libre"; p.status = "libre"; }
+            userBudget = 125.0;
+            saveRoster(); saveMarket(); saveBudget();
+            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
+            renderTacticalBoard(); renderBench(); renderSquadPanel();
+            renderClubProfile();
+            showNotification("Todos los jugadores liberados. Presupuesto: 125.0M", "success");
+            console.log("✅ Limpieza completa. Todos los slots vacíos. Presupuesto: 125.0M");
+        };
+
         function autoSubstitution() {
             const starters = getStarterKeys();
             const benchKeys = getBenchKeys();
