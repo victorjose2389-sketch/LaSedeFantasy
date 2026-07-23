@@ -348,6 +348,35 @@
         }
         .mi-equipo-sidebar h3 { font-family: 'Outfit'; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
 
+        /* ===== SQUAD PANEL (Horizontal scroll) ===== */
+        .squad-panel { margin-top: 20px; background: var(--ql-card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px 16px; }
+        .squad-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .squad-panel-header h3 { font-family: 'Outfit'; font-size: 14px; margin: 0; color: var(--vt-neon-cyan); }
+        .squad-panel-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 4px 0 8px; scrollbar-width: thin; scrollbar-color: rgba(0,240,255,0.3) transparent; }
+        .squad-panel-scroll::-webkit-scrollbar { height: 6px; }
+        .squad-panel-scroll::-webkit-scrollbar-track { background: transparent; }
+        .squad-panel-scroll::-webkit-scrollbar-thumb { background: rgba(0,240,255,0.3); border-radius: 3px; }
+        .squad-panel-card {
+            flex: 0 0 80px; display: flex; flex-direction: column; align-items: center;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; padding: 8px 4px 6px; cursor: grab;
+            transition: all 0.2s; position: relative; user-select: none;
+        }
+        .squad-panel-card:hover { border-color: var(--vt-neon-cyan); transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,240,255,0.2); }
+        .squad-panel-card.dragging { opacity: 0.35; }
+        .squad-panel-card .sp-rating { font-size: 13px; font-weight: 800; font-family: 'Outfit'; }
+        .squad-panel-card .sp-initials { width: 28px; height: 28px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; margin: 4px 0; }
+        .squad-panel-card .sp-name { font-size: 8px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; max-width: 72px; }
+        .squad-panel-card .sp-badge {
+            position: absolute; top: -6px; right: -4px; font-size: 6px; font-weight: 800;
+            padding: 2px 5px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .sp-badge.badge-starters { background: rgba(0,200,83,0.85); color: #fff; }
+        .sp-badge.badge-bench { background: rgba(251,191,36,0.85); color: #000; }
+        .sp-badge.badge-empty { background: rgba(100,100,100,0.6); color: #aaa; }
+        .squad-panel-card.empty-slot-panel { opacity: 0.45; border-style: dashed; cursor: default; }
+        .squad-panel-card.empty-slot-panel:hover { transform: none; box-shadow: none; border-color: rgba(255,255,255,0.1); }
+
         /* ===== MARKET ===== */
         .market-top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .market-filters {
@@ -939,6 +968,13 @@
                         <button class="btn btn-glow" style="width:100%; margin-top:20px; border-radius:20px;">Guardar Alineación</button>
                     </div>
                 </div>
+                <div class="squad-panel" id="squad-panel">
+                    <div class="squad-panel-header">
+                        <h3>⚽ Mi Plantilla</h3>
+                        <span style="font-size:10px; color:var(--vt-text-dim);">Arrastra a la cancha o al banco</span>
+                    </div>
+                    <div class="squad-panel-scroll" id="squad-panel-grid"></div>
+                </div>
             </div>
 
             <!-- ===== FICHAJES ===== -->
@@ -1131,8 +1167,9 @@
             return s ? s.pos : null;
         }
         function posCount(pos) {
+            const np = normPos(pos);
             let c = 0;
-            for (const k of ALL_SLOT_KEYS) { if (ROSTER_DATABASE[k] && getSlotPos(k) === pos) c++; }
+            for (const k of ALL_SLOT_KEYS) { if (ROSTER_DATABASE[k] && normPos(getSlotPos(k)) === np) c++; }
             return c;
         }
         function migrateRosterIfNeeded() {
@@ -1538,6 +1575,7 @@
             updateDashboard();
             renderTacticalBoard();
             renderBench();
+            renderSquadPanel();
             populateMarketFilters();
             applyMarketFilters();
             renderRankingTable();
@@ -1610,7 +1648,7 @@
             document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
             const target = document.getElementById("view-" + targetId);
             if (target) target.classList.add("active");
-            if (targetId === "team") { renderTacticalBoard(); renderBench(); }
+            if (targetId === "team") { renderTacticalBoard(); renderBench(); renderSquadPanel(); }
             if (targetId === "market") applyMarketFilters();
             if (targetId === "leaderboard") renderRankingTable();
             if (targetId === "dashboard") updateDashboard();
@@ -1618,7 +1656,7 @@
             if (targetId === "club") renderClubProfile();
         }
 
-        function setFormation(f) { currentFormation = f; saveFormation(); trackFormationUse(); renderTacticalBoard(); renderBench(); showNotification(`Táctica cambiada a ${f}.`, "info"); }
+        function setFormation(f) { currentFormation = f; saveFormation(); trackFormationUse(); renderTacticalBoard(); renderBench(); renderSquadPanel(); showNotification(`Táctica cambiada a ${f}.`, "info"); }
 
         function renderTacticalBoard() {
             const root = document.getElementById("positions-root");
@@ -1703,6 +1741,8 @@
 
         let _dragSourceKey = null;
         const _posLabelsES = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+        const _posNorm = { GK: "GK", POR: "GK", DF: "DF", DEF: "DF", MF: "MF", MED: "MF", FW: "FW", DEL: "FW" };
+        function normPos(pos) { return _posNorm[pos] || pos; }
 
         function handleDragStart(e, slotKey) {
             _dragSourceKey = slotKey;
@@ -1729,8 +1769,8 @@
             if (slot) slot.classList.remove("drag-over");
             document.querySelectorAll(".pitch-slot.dragging").forEach(el => el.classList.remove("dragging"));
             if (!_dragSourceKey || _dragSourceKey === targetKey) { _dragSourceKey = null; return; }
-            const fromPos = getSlotPos(_dragSourceKey);
-            const toPos = getSlotPos(targetKey);
+            const fromPos = normPos(getSlotPos(_dragSourceKey));
+            const toPos = normPos(getSlotPos(targetKey));
             if (fromPos !== toPos) {
                 showNotification(`Posición no permitida: ${_posLabelsES[fromPos] || fromPos} → ${_posLabelsES[toPos] || toPos}.`, "error");
                 _dragSourceKey = null;
@@ -1744,6 +1784,7 @@
             showNotification(`Intercambio realizado.`, "success");
             renderTacticalBoard();
             renderBench();
+            renderSquadPanel();
         }
 
         function renderBench() {
@@ -1771,6 +1812,78 @@
             root.innerHTML = html;
         }
 
+        function renderSquadPanel() {
+            const grid = document.getElementById("squad-panel-grid");
+            if (!grid) return;
+            const starters = getStarterKeys();
+            const benchKeys = getBenchKeys();
+            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+            const posColors = { GK: "var(--color-gold)", DF: "#22d3ee", MF: "#a855f7", FW: "#22c55e" };
+            let html = '';
+            ALL_SLOT_KEYS.forEach((slotKey) => {
+                const p = ROSTER_DATABASE[slotKey];
+                const slotPos = getSlotPos(slotKey);
+                const posLabel = posLabels[slotPos] || slotPos;
+                const posColor = posColors[slotPos] || "#888";
+                let badgeCls = "badge-empty";
+                let badgeText = "Vacío";
+                if (p) {
+                    if (starters.includes(slotKey)) { badgeCls = "badge-starters"; badgeText = "Titular"; }
+                    else if (benchKeys.includes(slotKey)) { badgeCls = "badge-bench"; badgeText = "Banca"; }
+                }
+                const isEmpty = !p;
+                const tier = p ? (p.rating >= 9.0 ? "legendary-card" : (p.rating >= 8.5 ? "special-card" : (p.rating >= 8.0 ? "gold-card" : ""))) : "";
+                const draggable = !isEmpty;
+                const dragStart = draggable ? 'ondragstart="handleSquadPanelDrag(event,\'' + slotKey + '\')"' : '';
+                const dragOver = 'ondragover="handleDragOver(event)"';
+                const dragLeave = 'ondragleave="handleDragLeave(event)"';
+                const dropHandler = 'ondrop="handleSquadPanelDrop(event,\'' + slotKey + '\')"';
+                html += '<div class="squad-panel-card' + (isEmpty ? ' empty-slot-panel' : '') + '" ' + dragStart + ' ' + dragOver + ' ' + dragLeave + ' ' + dropHandler + '>';
+                html += '<span class="sp-badge ' + badgeCls + '">' + badgeText + '</span>';
+                if (p) {
+                    html += '<span class="sp-rating" style="color:' + posColor + ';">' + Math.floor(p.rating * 10) + '</span>';
+                    html += '<div class="sp-initials" style="border:2px solid ' + posColor + ';">' + p.initials + '</div>';
+                    html += '<div class="sp-name" title="' + p.name + '">' + p.name + '</div>';
+                    html += '<div style="font-size:7px;color:var(--vt-text-dim);margin-top:2px;">' + posLabel + ' · ' + p.val.toFixed(1) + 'M</div>';
+                } else {
+                    html += '<div style="font-size:18px;color:rgba(255,255,255,0.3);margin:8px 0;">+</div>';
+                    html += '<div class="sp-name" style="color:var(--vt-text-dim);">' + posLabel + '</div>';
+                }
+                html += '</div>';
+            });
+            grid.innerHTML = html;
+        }
+
+        function handleSquadPanelDrag(e, slotKey) {
+            _dragSourceKey = slotKey;
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", slotKey);
+            setTimeout(() => { const el = e.target.closest(".squad-panel-card"); if (el) el.classList.add("dragging"); }, 0);
+        }
+
+        function handleSquadPanelDrop(e, targetKey) {
+            e.preventDefault();
+            const slot = e.target.closest(".squad-panel-card");
+            document.querySelectorAll(".squad-panel-card.dragging").forEach(el => el.classList.remove("dragging"));
+            if (!_dragSourceKey || _dragSourceKey === targetKey) { _dragSourceKey = null; return; }
+            const fromPos = normPos(getSlotPos(_dragSourceKey));
+            const toPos = normPos(getSlotPos(targetKey));
+            if (fromPos !== toPos) {
+                showNotification("Posición no permitida: " + (_posLabelsES[fromPos] || fromPos) + " → " + (_posLabelsES[toPos] || toPos) + ".", "error");
+                _dragSourceKey = null;
+                return;
+            }
+            const temp = ROSTER_DATABASE[targetKey];
+            ROSTER_DATABASE[targetKey] = ROSTER_DATABASE[_dragSourceKey];
+            ROSTER_DATABASE[_dragSourceKey] = temp;
+            _dragSourceKey = null;
+            saveRoster();
+            showNotification("Intercambio realizado.", "success");
+            renderTacticalBoard();
+            renderBench();
+            renderSquadPanel();
+        }
+
 
         function handleSlotSelection(slotKey) {
             if (selectedPitchSlotKey === null) {
@@ -1779,12 +1892,12 @@
                 showNotification(`Seleccionado: ${name}. Elige destino para intercambiar.`, "info");
             } else {
                 if (selectedPitchSlotKey !== slotKey) {
-                    const fromPos = getSlotPos(selectedPitchSlotKey);
-                    const toPos = getSlotPos(slotKey);
+                    const fromPos = normPos(getSlotPos(selectedPitchSlotKey));
+                    const toPos = normPos(getSlotPos(slotKey));
                     if (fromPos !== toPos) {
                         showNotification(`Posición no permitida: ${_posLabelsES[fromPos] || fromPos} → ${_posLabelsES[toPos] || toPos}.`, "error");
                         selectedPitchSlotKey = null;
-                        renderTacticalBoard(); renderBench();
+                        renderTacticalBoard(); renderBench(); renderSquadPanel();
                         return;
                     }
                     const p1 = ROSTER_DATABASE[selectedPitchSlotKey];
@@ -1798,7 +1911,7 @@
                 }
                 selectedPitchSlotKey = null;
             }
-            renderTacticalBoard(); renderBench();
+            renderTacticalBoard(); renderBench(); renderSquadPanel();
         }
 
         function debounceMarketSearch() { clearTimeout(_debounceTimer); _debounceTimer = setTimeout(() => applyMarketFilters(), 300); }
@@ -1892,8 +2005,9 @@
         }
 
         function getNextAvailableSlot(pos) {
+            const np = normPos(pos);
             for (let s of SLOT_DEFS) {
-                if (s.pos === pos && !ROSTER_DATABASE[s.key]) return s.key;
+                if (normPos(s.pos) === np && !ROSTER_DATABASE[s.key]) return s.key;
             }
             return null;
         }
@@ -1913,8 +2027,9 @@
                 return;
             }
             const currentPosCount = posCount(player.pos);
-            if (currentPosCount >= POS_MAX[player.pos]) {
-                showNotification(`Límite de ${POS_MAX[player.pos]} ${player.pos} alcanzado. Vende uno primero.`, "error");
+            const npos = normPos(player.pos);
+            if (currentPosCount >= POS_MAX[npos]) {
+                showNotification(`Límite de ${POS_MAX[npos]} ${_posLabelsES[npos] || npos} alcanzado. Vende uno primero.`, "error");
                 return;
             }
 
@@ -1933,7 +2048,7 @@
 
             logTransfer("buy", player, player.val);
             saveMarket(); saveBudget(); saveRoster();
-            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar();
+            updateBudgetDisplays(); updateSquadStats(); applyMarketFilters(); closeSidebar(); renderSquadPanel();
             showNotification(`¡Fichaje oficializado! ${player.name} → ${slot.toUpperCase()} (${squadSize + 1}/${MAX_SQUAD_SIZE}). Saldo: ${userBudget.toFixed(1)}M`, "success");
         }
 
@@ -1957,7 +2072,7 @@
             logTransfer("sell", player, salePrice);
             saveRoster(); saveMarket(); saveBudget();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
-            renderTacticalBoard(); renderBench();
+            renderTacticalBoard(); renderBench(); renderSquadPanel();
             showNotification(`${player.name} vendido por ${salePrice.toFixed(1)}M. Saldo: ${userBudget.toFixed(1)}M`, "success");
         }
 
@@ -1979,7 +2094,7 @@
             userBudget = 125.0;
             saveRoster(); saveMarket(); saveBudget();
             updateBudgetDisplays(); updateSquadStats(); applyMarketFilters();
-            renderClubProfile();
+            renderClubProfile(); renderSquadPanel();
             showNotification("Plantilla vendida. Presupuesto reseteado a 125.0M.", "success");
         }
 
@@ -1996,7 +2111,7 @@
                 for (const benchKey of benchKeys) {
                     const sub = ROSTER_DATABASE[benchKey];
                     if (!sub || sub.rating <= 0) continue;
-                    if (sub.pos !== slotPos) continue;
+                    if (normPos(sub.pos) !== normPos(slotPos)) continue;
 
                     ROSTER_DATABASE[slotKey] = sub;
                     ROSTER_DATABASE[benchKey] = null;
