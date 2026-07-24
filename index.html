@@ -1095,6 +1095,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="players-ucl.js"></script>
     <script src="teams-ucl.js"></script>
+    <script src="fixtures-ucl.js"></script>
     <script src="logic.js"></script>
     <script>
         const firebaseConfig = {
@@ -1674,6 +1675,7 @@
             if (targetId === "dashboard") updateDashboard();
             if (targetId === "admin") loadAdminUsers();
             if (targetId === "club") renderClubProfile();
+            if (targetId === "calendar") renderCalendar();
         }
 
         function setFormation(f) { currentFormation = f; saveFormation(); trackFormationUse(); renderTacticalBoard(); renderBench(); renderSquadPanel(); showNotification(`Táctica cambiada a ${f}.`, "info"); }
@@ -2899,6 +2901,92 @@
         function closeProfileEditor() {
             const overlay = document.getElementById("profile-modal-overlay");
             if (overlay) overlay.remove();
+        }
+
+        function renderCalendar() {
+            const root = document.getElementById("calendar-matches-root");
+            if (!root) return;
+
+            const fixtures = typeof NEXT_FIXTURES !== "undefined" ? NEXT_FIXTURES : [];
+
+            if (fixtures.length === 0) {
+                root.innerHTML = `
+                    <div class="ql-card" style="text-align:center; padding:40px;">
+                        <div style="font-size:32px; margin-bottom:10px;">📅</div>
+                        <div style="font-size:14px; color:var(--vt-text-dim); margin-bottom:8px;">Sin próximos partidos disponibles</div>
+                        <div style="font-size:11px; color:var(--vt-text-dim);">
+                            Ejecuta <code style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">node fetch-fixtures.js</code> para cargar los fixtures desde SofaScore
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar por fecha
+            const grouped = {};
+            fixtures.forEach(f => {
+                if (!grouped[f.date]) grouped[f.date] = [];
+                grouped[f.date].push(f);
+            });
+
+            // Ordenar fechas
+            const sortedDates = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+
+            // Solo equipos vinculados al usuario (los que tiene en su roster)
+            const userTeamCodes = new Set();
+            for (const key of ALL_SLOT_KEYS) {
+                const p = ROSTER_DATABASE[key];
+                if (p && p.teamId) userTeamCodes.add(p.teamId);
+            }
+
+            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+            let html = '';
+
+            sortedDates.forEach(date => {
+                const dayFixtures = grouped[date];
+                const d = new Date(date + "T12:00:00");
+                const dayName = d.toLocaleDateString("es-ES", { weekday: "long" });
+                const dateFormatted = d.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+
+                html += `<div style="margin-bottom:24px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                        <div style="background:var(--vt-neon-purple); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; text-transform:uppercase;">${dayName}</div>
+                        <div style="font-size:13px; color:var(--vt-text-dim);">${dateFormatted}</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:12px;">`;
+
+                dayFixtures.forEach(f => {
+                    const isUserTeam = userTeamCodes.has(f.teamCode);
+                    const border = isUserTeam ? 'border-color:var(--vt-neon-cyan); box-shadow:0 0 12px rgba(0,240,255,0.15);' : '';
+                    const badge = isUserTeam ? `<div style="font-size:8px; background:var(--vt-neon-cyan); color:#000; padding:2px 6px; border-radius:6px; font-weight:700; margin-left:auto;">MI EQUIPO</div>` : '';
+
+                    html += `
+                        <div class="ql-card" style="padding:16px; ${border}">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <div style="font-size:10px; color:var(--vt-text-dim); text-transform:uppercase; letter-spacing:0.5px;">${f.competition || "Champions League"}</div>
+                                ${badge}
+                            </div>
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <div style="flex:1; text-align:center;">
+                                    <div style="font-size:14px; font-weight:700; ${f.isHome ? 'color:var(--vt-neon-cyan);' : ''}">${f.teamName}</div>
+                                    <div style="font-size:9px; color:var(--vt-text-dim); margin-top:2px;">${f.isHome ? '🏠 Local' : '✈️ Visitante'}</div>
+                                </div>
+                                <div style="padding:0 16px; text-align:center;">
+                                    <div style="font-size:20px; font-family:'Outfit'; font-weight:800; color:var(--color-gold);">${f.time || "TBD"}</div>
+                                </div>
+                                <div style="flex:1; text-align:center;">
+                                    <div style="font-size:14px; font-weight:700; ${!f.isHome ? 'color:var(--vt-neon-cyan);' : ''}">${f.opponentName}</div>
+                                    <div style="font-size:9px; color:var(--vt-text-dim); margin-top:2px;">${!f.isHome ? '🏠 Local' : '✈️ Visitante'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+            });
+
+            root.innerHTML = html;
         }
     </script>
 </body>
