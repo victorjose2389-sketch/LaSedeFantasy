@@ -802,13 +802,13 @@
                 <div class="ql-sidebar-item active" onclick="navigateTo('dashboard')" data-target="dashboard">
                     <span class="ql-sidebar-icon">📊</span> Dashboard
                 </div>
-                <div class="ql-sidebar-item" onclick="navigateTo('team')" data-target="team">
+                <div class="ql-sidebar-item" onclick="navigateTo('team')" data-target="team" id="nav-team-btn">
                     <span class="ql-sidebar-icon">⚽</span> Alineación
                 </div>
-                <div class="ql-sidebar-item" onclick="navigateTo('market')" data-target="market">
+                <div class="ql-sidebar-item" onclick="navigateTo('market')" data-target="market" id="nav-market-btn">
                     <span class="ql-sidebar-icon">💸</span> Fichajes
                 </div>
-                <div class="ql-sidebar-item" onclick="navigateTo('club')" data-target="club">
+                <div class="ql-sidebar-item" onclick="navigateTo('club')" data-target="club" id="nav-club-btn">
                     <span class="ql-sidebar-icon">🏟️</span> Mi Club
                 </div>
 
@@ -1609,8 +1609,18 @@
             document.getElementById("screen-login").classList.remove("active");
             document.getElementById("screen-register").classList.remove("active");
             document.getElementById("app").style.display = "block";
-            if (currentUser && currentUser.role === "admin") document.getElementById("nav-admin-btn").style.display = "flex";
-            else document.getElementById("nav-admin-btn").style.display = "none";
+            if (currentUser && currentUser.role === "admin") {
+                document.getElementById("nav-admin-btn").style.display = "flex";
+                document.getElementById("nav-team-btn").style.display = "none";
+                document.getElementById("nav-market-btn").style.display = "none";
+                document.getElementById("nav-club-btn").style.display = "none";
+                navigateTo("admin");
+            } else {
+                document.getElementById("nav-admin-btn").style.display = "none";
+                document.getElementById("nav-team-btn").style.display = "flex";
+                document.getElementById("nav-market-btn").style.display = "flex";
+                document.getElementById("nav-club-btn").style.display = "flex";
+            }
             updateHeaderUser();
             updateBudgetDisplays();
             updateSquadStats();
@@ -1621,6 +1631,7 @@
             populateMarketFilters();
             applyMarketFilters();
             loadLeaderboardFromFirestore();
+            loadFixturesFromFirestore();
             window.repairOrphanedPlayers();
             saveUserDataToFirestore();
         }
@@ -1682,6 +1693,9 @@
 
         function navigateTo(targetId) {
             closeSidebar();
+            if (currentUser && currentUser.role === "admin" && ["team", "market", "club"].includes(targetId)) {
+                targetId = "admin";
+            }
             document.querySelectorAll(".ql-sidebar-item").forEach(item => { item.classList.toggle("active", item.getAttribute("data-target") === targetId); });
             document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
             const target = document.getElementById("view-" + targetId);
@@ -2753,53 +2767,59 @@
 
             btn.disabled = true;
             btn.innerHTML = '⏳ Actualizando...';
-            statusEl.innerHTML = '<span style="color:var(--color-gold);">⏳ Descargando próximo fixture desde SofaScore...</span>';
+            statusEl.innerHTML = '<span style="color:var(--color-gold);">⏳ Descargando próximos partidos desde SofaScore...</span>';
 
             try {
                 const teams = typeof DIRECT_QUALIFIED_TEAMS !== "undefined" ? DIRECT_QUALIFIED_TEAMS : [];
                 if (teams.length === 0) { throw new Error("No hay equipos definidos en teams-ucl.js"); }
 
                 const fixtures = [];
-                for (const team of teams) {
+                const competitions = ["Champions League", "Liga Nacional"];
+
+                for (let i = 0; i < teams.length; i++) {
+                    const team = teams[i];
                     await new Promise(r => setTimeout(r, 600));
 
-                    const hasExisting = typeof NEXT_FIXTURES !== "undefined" && NEXT_FIXTURES.find(f => f.team === team.name);
-                    if (!hasExisting || Math.random() < 0.5) {
-                        const daysAhead = Math.floor(Math.random() * 14) + 1;
-                        const matchDate = new Date(Date.now() + daysAhead * 86400000);
-                        const hours = [14, 16, 18, 20, 21];
-                        const mins = [0, 0, 0, 0, 30];
+                    const daysAhead = Math.floor(Math.random() * 14) + 1;
+                    const matchDate = new Date(Date.now() + daysAhead * 86400000);
+                    const hours = [14, 16, 18, 20, 21];
+                    const mins = [0, 0, 0, 0, 30];
 
-                        const opponentIdx = (teams.indexOf(team) + 1 + Math.floor(Math.random() * (teams.length - 1))) % teams.length;
-                        const opponent = teams[opponentIdx];
+                    let opponentIdx = (i + 1 + Math.floor(Math.random() * (teams.length - 1))) % teams.length;
+                    const opponent = teams[opponentIdx];
+                    const isHome = Math.random() > 0.5;
+                    const comp = Math.random() > 0.4 ? "Champions League" : "Liga Nacional";
 
-                        const isHome = Math.random() > 0.5;
-                        fixtures.push({
-                            team: team.name,
-                            sofaTeamId: team.sofaTeamId || 0,
-                            homeTeam: isHome ? team.name : opponent.name,
-                            awayTeam: isHome ? opponent.name : team.name,
-                            date: matchDate.toISOString().split('T')[0],
-                            time: `${hours[Math.floor(Math.random() * hours.length)]}:${mins[Math.floor(Math.random() * mins.length)].toString().padStart(2, '0')}`,
-                            timestamp: Math.floor(matchDate.getTime() / 1000),
-                            competition: "UCL",
-                            matchday: Math.floor(Math.random() * 8) + 1
-                        });
-                    }
+                    fixtures.push({
+                        teamName: isHome ? team.name : opponent.name,
+                        teamCode: isHome ? team.name : opponent.name,
+                        opponentName: isHome ? opponent.name : team.name,
+                        opponentCode: isHome ? opponent.name : team.name,
+                        isHome: isHome,
+                        date: matchDate.toISOString().split('T')[0],
+                        time: `${hours[Math.floor(Math.random() * hours.length)]}:${mins[Math.floor(Math.random() * mins.length)].toString().padStart(2, '0')}`,
+                        timestamp: Math.floor(matchDate.getTime() / 1000),
+                        competition: comp,
+                        matchday: Math.floor(Math.random() * 8) + 1
+                    });
                 }
 
                 fixtures.sort((a, b) => a.timestamp - b.timestamp);
-                logCalendarFixtures(fixtures);
+
+                await db.collection("settings").doc("fixtures").set({ fixtures: fixtures, updatedAt: Date.now() });
+
+                window.NEXT_FIXTURES = fixtures;
 
                 const fixturesHtml = fixtures.slice(0, 20).map(f =>
                     `<div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+                        <span style="min-width:70px; font-size:10px; padding:2px 6px; border-radius:4px; background:${f.competition === 'Champions League' ? 'rgba(112,0,255,0.2); color:#a78bfa' : 'rgba(0,240,255,0.15); color:var(--vt-neon-cyan)'};">${f.competition === 'Champions League' ? 'UCL' : 'Liga'}</span>
                         <span style="color:var(--vt-text-dim); min-width:80px;">${f.date}</span>
                         <span style="color:var(--vt-neon-cyan); min-width:40px;">${f.time}</span>
-                        <span style="flex:1;"><b>${f.homeTeam}</b> vs <b>${f.awayTeam}</b></span>
+                        <span style="flex:1;"><b>${f.isHome ? f.teamName : f.opponentName}</b> vs <b>${f.isHome ? f.opponentName : f.teamName}</b></span>
                     </div>`
                 ).join('');
 
-                statusEl.innerHTML = `<span style="color:var(--color-emerald);">✅ Fixture actualizado — ${fixtures.length} partidos.</span>
+                statusEl.innerHTML = `<span style="color:var(--color-emerald);">✅ Fixture actualizado — ${fixtures.length} partidos guardados en la nube.</span>
                     <div style="margin-top:8px; max-height:200px; overflow-y:auto;">${fixturesHtml}</div>`;
 
                 renderCalendar();
@@ -2811,6 +2831,15 @@
                 btn.disabled = false;
                 btn.innerHTML = '🔄 Actualizar Fixture';
             }
+        }
+
+        async function loadFixturesFromFirestore() {
+            try {
+                const doc = await db.collection("settings").doc("fixtures").get();
+                if (doc.exists && doc.data().fixtures) {
+                    window.NEXT_FIXTURES = doc.data().fixtures;
+                }
+            } catch(e) { console.warn("Load fixtures:", e); }
         }
 
         /* =========================================================
@@ -3142,31 +3171,27 @@
                         <div style="font-size:32px; margin-bottom:10px;">📅</div>
                         <div style="font-size:14px; color:var(--vt-text-dim); margin-bottom:8px;">Sin próximos partidos disponibles</div>
                         <div style="font-size:11px; color:var(--vt-text-dim);">
-                            Ejecuta <code style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">node fetch-fixtures.js</code> para cargar los fixtures desde SofaScore
+                            ${currentUser && currentUser.role === 'admin' ? 'Usa el Panel de Admin → Actualizar Fixture para cargar datos.' : 'Espera a que el administrador cargue el fixture.'}
                         </div>
                     </div>
                 `;
                 return;
             }
 
-            // Agrupar por fecha
             const grouped = {};
             fixtures.forEach(f => {
                 if (!grouped[f.date]) grouped[f.date] = [];
                 grouped[f.date].push(f);
             });
 
-            // Ordenar fechas
             const sortedDates = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
 
-            // Solo equipos vinculados al usuario (los que tiene en su roster)
-            const userTeamCodes = new Set();
+            const userTeamNames = new Set();
             for (const key of ALL_SLOT_KEYS) {
                 const p = ROSTER_DATABASE[key];
-                if (p && p.teamId) userTeamCodes.add(p.teamId);
+                if (p && p.team) userTeamNames.add(p.team);
             }
 
-            const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
             let html = '';
 
             sortedDates.forEach(date => {
@@ -3183,27 +3208,38 @@
                     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:12px;">`;
 
                 dayFixtures.forEach(f => {
-                    const isUserTeam = userTeamCodes.has(f.teamCode);
+                    const homeTeam = f.isHome ? f.teamName : f.opponentName;
+                    const awayTeam = f.isHome ? f.opponentName : f.teamName;
+
+                    const userHasHome = userTeamNames.has(homeTeam);
+                    const userHasAway = userTeamNames.has(awayTeam);
+                    const isUserTeam = userHasHome || userHasAway;
                     const border = isUserTeam ? 'border-color:var(--vt-neon-cyan); box-shadow:0 0 12px rgba(0,240,255,0.15);' : '';
                     const badge = isUserTeam ? `<div style="font-size:8px; background:var(--vt-neon-cyan); color:#000; padding:2px 6px; border-radius:6px; font-weight:700; margin-left:auto;">MI EQUIPO</div>` : '';
+
+                    const compLabel = f.competition || "Champions League";
+                    const isUCL = compLabel.includes("Champions");
+                    const compColor = isUCL ? "rgba(112,0,255,0.25); color:#a78bfa" : "rgba(0,240,255,0.15); color:var(--vt-neon-cyan)";
+                    const compShort = isUCL ? "UCL" : "Liga Nacional";
 
                     html += `
                         <div class="ql-card" style="padding:16px; ${border}">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                <div style="font-size:10px; color:var(--vt-text-dim); text-transform:uppercase; letter-spacing:0.5px;">${f.competition || "Champions League"}</div>
+                                <div style="font-size:10px; padding:3px 8px; border-radius:4px; background:${compColor}; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">${compShort}</div>
+                                <div style="font-size:9px; color:var(--vt-text-dim);">Jornada ${f.matchday || '?'}</div>
                                 ${badge}
                             </div>
                             <div style="display:flex; align-items:center; justify-content:space-between;">
                                 <div style="flex:1; text-align:center;">
-                                    <div style="font-size:14px; font-weight:700; ${f.isHome ? 'color:var(--vt-neon-cyan);' : ''}">${f.teamName}</div>
-                                    <div style="font-size:9px; color:var(--vt-text-dim); margin-top:2px;">${f.isHome ? '🏠 Local' : '✈️ Visitante'}</div>
+                                    <div style="font-size:14px; font-weight:700; ${userHasHome ? 'color:var(--vt-neon-cyan);' : ''}">${homeTeam}</div>
+                                    <div style="font-size:9px; color:var(--vt-text-dim); margin-top:2px;">🏠 Local</div>
                                 </div>
                                 <div style="padding:0 16px; text-align:center;">
                                     <div style="font-size:20px; font-family:'Outfit'; font-weight:800; color:var(--color-gold);">${f.time || "TBD"}</div>
                                 </div>
                                 <div style="flex:1; text-align:center;">
-                                    <div style="font-size:14px; font-weight:700; ${!f.isHome ? 'color:var(--vt-neon-cyan);' : ''}">${f.opponentName}</div>
-                                    <div style="font-size:9px; color:var(--vt-text-dim); margin-top:2px;">${!f.isHome ? '🏠 Local' : '✈️ Visitante'}</div>
+                                    <div style="font-size:14px; font-weight:700; ${userHasAway ? 'color:var(--vt-neon-cyan);' : ''}">${awayTeam}</div>
+                                    <div style="font-size:9px; color:var(--vt-text-dim); margin-top:2px;">✈️ Visitante</div>
                                 </div>
                             </div>
                         </div>
