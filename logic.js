@@ -240,6 +240,7 @@
 
       return {
         rank: 0,
+        uid: u._uid || "",
         team: teamName,
         manager: manager,
         pts: Math.round(pts * 10) / 10,

@@ -2021,6 +2021,114 @@
             openSidebar();
         }
 
+        async function viewUserProfile(uid) {
+            const root = document.getElementById("detail-sidebar-content");
+            root.innerHTML = '<div style="text-align:center; padding:40px; color:var(--vt-text-dim);">Cargando perfil...</div>';
+            openSidebar();
+
+            try {
+                const doc = await db.collection("users").doc(uid).get();
+                if (!doc.exists) {
+                    root.innerHTML = '<div style="text-align:center; padding:40px; color:var(--color-red);">Usuario no encontrado.</div>';
+                    return;
+                }
+
+                const u = doc.data();
+                const cp = u.clubProfile || {};
+                const roster = u.roster || {};
+                const teamName = u.clubName || cp.teamName || "Sin nombre";
+                const manager = cp.managerName || u.email?.split("@")[0] || "";
+                const owner = cp.owner || u.email || "";
+                const avatar = cp.avatar || "⚽";
+                const initials = teamName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+                // Calcular puntos
+                const ptsGeneral = FantasyLogic.calcularPuntosUsuario(u, "general");
+                const ptsLiga = FantasyLogic.calcularPuntosUsuario(u, "nacional");
+                const ptsUcl = FantasyLogic.calcularPuntosUsuario(u, "champions");
+                const squadVal = FantasyLogic.calcularValorPlantilla(roster);
+
+                // Contar jugadores
+                let playerCount = 0;
+                let starters = [];
+                let benchList = [];
+                const posLabels = { GK: "POR", DF: "DEF", MF: "MED", FW: "DEL" };
+                const posOrder = { GK: 0, DF: 1, MF: 2, FW: 3 };
+
+                for (const key of Object.keys(roster)) {
+                    if (roster[key]) {
+                        playerCount++;
+                        const p = roster[key];
+                        const info = { ...p, slotKey: key };
+                        if (playerCount <= 11) starters.push(info);
+                        else benchList.push(info);
+                    }
+                }
+
+                const formation = u.formation || "4-3-3";
+
+                root.innerHTML = `
+                    <div style="text-align:center; margin-bottom:24px;">
+                        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--vt-neon-purple),var(--vt-neon-cyan));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;border:3px solid rgba(0,240,255,0.4);">${avatar !== "⚽" ? avatar : initials}</div>
+                        <h2 style="font-family:'Outfit'; font-size:20px; font-weight:800;">${teamName}</h2>
+                        <p style="color:var(--vt-text-dim); font-size:12px; margin-top:4px;">DT: ${manager || "-"} · Propietario: ${owner}</p>
+                        <p style="color:var(--vt-text-dim); font-size:11px; margin-top:2px;">Formación: ${formation} · ${playerCount}/16 jugadores</p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+                        <div style="background:rgba(255,255,255,0.05); padding:14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:10px; color:var(--vt-text-dim); margin-bottom:4px;">PTOS GENERALES</div>
+                            <div style="font-family:'Outfit'; font-size:22px; font-weight:800; color:var(--vt-neon-cyan);">${ptsGeneral.toFixed(1)}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:10px; color:var(--vt-text-dim); margin-bottom:4px;">VALOR PLANTILLA</div>
+                            <div style="font-family:'Outfit'; font-size:22px; font-weight:800; color:var(--color-gold);">${squadVal.toFixed(1)}M</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:10px; color:var(--vt-text-dim); margin-bottom:4px;">PTOS LIGA</div>
+                            <div style="font-family:'Outfit'; font-size:16px; font-weight:700; color:var(--color-emerald);">${ptsLiga.toFixed(1)}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); padding:14px; border-radius:10px; text-align:center;">
+                            <div style="font-size:10px; color:var(--vt-text-dim); margin-bottom:4px;">PTOS UCL</div>
+                            <div style="font-family:'Outfit'; font-size:16px; font-weight:700; color:var(--vt-neon-purple);">${ptsUcl.toFixed(1)}</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:12px; font-weight:700; color:var(--vt-neon-cyan); margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.1);">ALINEACIÓN (${formation})</div>
+                    ${starters.length > 0 ? starters.map(p => `
+                        <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <div style="width:32px;height:32px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">${p.initials}</div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
+                                <div style="font-size:10px; color:var(--vt-text-dim);">${posLabels[p.pos] || p.pos} · ${p.teamName || ""}</div>
+                            </div>
+                            <div style="text-align:right; flex-shrink:0;">
+                                <div style="font-size:12px; font-weight:700; color:var(--vt-neon-cyan);">${Math.floor((p.rating || 0) * 10)}</div>
+                                <div style="font-size:10px; color:var(--vt-text-dim);">${p.pts || 0} pts</div>
+                            </div>
+                        </div>
+                    `).join("") : '<div style="text-align:center; color:var(--vt-text-dim); font-size:12px; padding:15px;">Sin titulares aún</div>'}
+
+                    ${benchList.length > 0 ? `
+                        <div style="font-size:11px; font-weight:700; color:var(--color-gold); margin:16px 0 10px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.1);">SUPLENTES</div>
+                        ${benchList.map(p => `
+                            <div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <div style="width:28px;height:28px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;">${p.initials}</div>
+                                <div style="flex:1; min-width:0;">
+                                    <div style="font-size:11px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
+                                    <div style="font-size:9px; color:var(--vt-text-dim);">${posLabels[p.pos] || p.pos}</div>
+                                </div>
+                                <div style="font-size:11px; font-weight:700; color:var(--color-gold);">${p.pts || 0} pts</div>
+                            </div>
+                        `).join("")}
+                    ` : ''}
+                `;
+            } catch (e) {
+                root.innerHTML = '<div style="text-align:center; padding:40px; color:var(--color-red);">Error al cargar perfil.</div>';
+                console.warn("viewUserProfile error:", e);
+            }
+        }
+
         function openSidebar() { document.getElementById("detail-sidebar").classList.add("active"); document.getElementById("sidebar-overlay").classList.add("active"); }
         function closeSidebar() { document.getElementById("detail-sidebar").classList.remove("active"); document.getElementById("sidebar-overlay").classList.remove("active"); }
 
@@ -2257,26 +2365,37 @@
             if (!table) return;
 
             let displayData = GLOBAL_LEADERBOARD[activeRankingTab] || GLOBAL_LEADERBOARD_FALLBACK[activeRankingTab];
-            if (!displayData || displayData.length === 0) displayData = GLOBAL_LEADERBOARD_FALLBACK.general;
+            if (!displayData || displayData.length === 0) displayData = [];
 
             const colLabelMap = {
-                general: 'Ptos Totales',
+                general: 'Puntos',
                 nacional: 'Ptos Liga',
                 champions: 'Ptos UCL',
                 weekly: 'Ptos Jornada',
                 value: 'Valor Plantilla'
             };
-            const colLabel = colLabelMap[activeRankingTab] || 'Ptos Totales';
+            const colLabel = colLabelMap[activeRankingTab] || 'Puntos';
 
             let html = `<thead><tr>
-                <th>#</th><th>Usuario</th><th>Equipo Fantasy</th>
+                <th>#</th><th>Nombre del Equipo</th><th>DT / Entrenador</th>
                 <th style="text-align: right;">${colLabel}</th>
             </tr></thead><tbody>`;
+
+            if (displayData.length === 0) {
+                html += `<tr><td colspan="4" style="text-align:center; color:var(--vt-text-dim); padding:30px;">No hay equipos registrados aún.</td></tr>`;
+            }
+
             displayData.forEach((row, i) => {
-                html += `<tr class="${row.current ? 'row-user-active' : ''}">
+                const isMe = currentUser && row.uid === currentUser.uid;
+                const clickable = row.uid && !isMe;
+                const teamCell = clickable
+                    ? `<a href="#" onclick="event.preventDefault(); viewUserProfile('${row.uid}')" style="font-weight:700; color:var(--vt-neon-cyan); text-decoration:none; cursor:pointer;">${row.team}</a>`
+                    : `<span style="font-weight:700; ${isMe ? 'color:var(--vt-neon-cyan);' : ''}">${row.team}</span>`;
+
+                html += `<tr class="${isMe ? 'row-user-active' : ''}">
                     <td style="font-weight: 700;">${i + 1}.</td>
-                    <td style="display:flex; align-items:center; gap:10px;"><div style="width:24px;height:24px;background:#555;border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px;">👤</div>${row.manager}</td>
-                    <td style="font-weight: 600; color:var(--vt-text-dim);">${row.team}</td>
+                    <td>${teamCell}</td>
+                    <td style="color:var(--vt-text-dim);">${row.manager || "-"}</td>
                     <td style="text-align: right; font-weight: 700;">
                         ${activeRankingTab === 'value' ? `${row.val.toFixed(1)}M` : `${(row.pts || 0).toFixed(1)}`}
                     </td></tr>`;
