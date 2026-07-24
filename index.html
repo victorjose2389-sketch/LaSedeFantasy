@@ -1060,6 +1060,16 @@
                         </div>
 
                         <div class="ql-card" style="padding:20px;">
+                            <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">🔄 Actualización Automática</h3>
+                            <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Actualiza fixtures y ratings desde SofaScore. Ejecuta <code style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">node auto-update.js</code> en terminal.</p>
+                            <div id="admin-update-status" style="margin-bottom:12px; font-size:12px; color:var(--vt-text-dim);">Cargando estado...</div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button class="btn btn-primary" onclick="showUpdateInstructions()" style="border-radius:20px;">📄 Ver Instrucciones</button>
+                                <button class="btn btn-secondary" onclick="checkDataFreshness()" style="border-radius:20px;">🔄 Verificar Estado</button>
+                            </div>
+                        </div>
+
+                        <div class="ql-card" style="padding:20px;">
                             <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">Sistema</h3>
                             <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Herramientas de mantenimiento del sistema.</p>
                             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -1673,7 +1683,7 @@
             if (targetId === "market") applyMarketFilters();
             if (targetId === "leaderboard") renderRankingTable();
             if (targetId === "dashboard") updateDashboard();
-            if (targetId === "admin") loadAdminUsers();
+            if (targetId === "admin") { loadAdminUsers(); checkDataFreshness(); }
             if (targetId === "club") renderClubProfile();
             if (targetId === "calendar") renderCalendar();
         }
@@ -2560,6 +2570,93 @@
             saveRoster(); saveMarket(); saveUserDataToFirestore();
             updateDashboard();
             showNotification("Todos los puntos han sido reseteados.", "success");
+        }
+
+        function checkDataFreshness() {
+            const statusEl = document.getElementById("admin-update-status");
+            if (!statusEl) return;
+
+            const now = Date.now();
+            let html = '';
+
+            // Verificar fixtures
+            const fixtures = typeof NEXT_FIXTURES !== "undefined" ? NEXT_FIXTURES : [];
+            if (fixtures.length === 0) {
+                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <span style="color:var(--color-red);">⚠️</span>
+                    <span>Fixtures: <b>Sin datos</b> — Ejecuta <code style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">node auto-update.js</code></span>
+                </div>`;
+            } else {
+                // Check if fixtures are from this season
+                const latestTs = Math.max(...fixtures.map(f => f.timestamp || 0));
+                const daysOld = latestTs ? Math.floor((now / 1000 - latestTs) / 86400) : 999;
+                const color = daysOld > 30 ? 'var(--color-gold)' : 'var(--color-emerald)';
+                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <span style="color:${color};">📅</span>
+                    <span>Fixtures: <b style="color:${color};">${fixtures.length} equipos</b></span>
+                </div>`;
+            }
+
+            // Verificar jugadores
+            const players = typeof STAR_PLAYERS_POOL !== "undefined" ? STAR_PLAYERS_POOL : [];
+            if (players.length === 0) {
+                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <span style="color:var(--color-red);">⚠️</span>
+                    <span>Jugadores: <b>Sin datos</b> — Ejecuta <code style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">node auto-update.js</code></span>
+                </div>`;
+            } else {
+                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <span style="color:var(--color-emerald);">⚽</span>
+                    <span>Jugadores: <b style="color:var(--color-emerald);">${players.length} cargados</b></span>
+                </div>`;
+            }
+
+            html += `<div style="font-size:10px; color:var(--vt-text-dim); margin-top:8px;">
+                💡 Ejecuta <code style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">node auto-update.js</code> después de cada jornada para mantener datos frescos.
+            </div>`;
+
+            statusEl.innerHTML = html;
+        }
+
+        function showUpdateInstructions() {
+            const root = document.getElementById("detail-sidebar-content");
+            root.innerHTML = `
+                <div style="margin-bottom:20px;">
+                    <h2 style="font-family:'Outfit'; font-size:20px; font-weight:800; margin-bottom:15px;">🔄 Instrucciones de Actualización</h2>
+
+                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px;">
+                        <div style="font-size:13px; font-weight:700; color:var(--vt-neon-cyan); margin-bottom:8px;">Paso 1: Abrir terminal en la carpeta del proyecto</div>
+                        <code style="background:rgba(0,0,0,0.4); padding:8px 12px; border-radius:6px; display:block; font-size:12px; color:var(--color-emerald);">cd C:\\Users\\Windows\\Downloads\\open code\\quiniela</code>
+                    </div>
+
+                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px;">
+                        <div style="font-size:13px; font-weight:700; color:var(--vt-neon-cyan); margin-bottom:8px;">Paso 2: Ejecutar el script</div>
+                        <code style="background:rgba(0,0,0,0.4); padding:8px 12px; border-radius:6px; display:block; font-size:12px; color:var(--color-emerald);">node auto-update.js</code>
+                        <div style="font-size:11px; color:var(--vt-text-dim); margin-top:6px;">Esto actualizará fixtures y ratings desde SofaScore (~2-3 min)</div>
+                    </div>
+
+                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px;">
+                        <div style="font-size:13px; font-weight:700; color:var(--color-gold); margin-bottom:8px;">⏰ ¿Cada cuándo ejecutar?</div>
+                        <ul style="font-size:12px; color:var(--vt-text-dim); margin:0; padding-left:20px;">
+                            <li><b>Ratings:</b> después de cada jornada (fines de semana)</li>
+                            <li><b>Fixtures:</b> al inicio de temporada + si hay cambios</li>
+                        </ul>
+                    </div>
+
+                    <div style="background:rgba(112,0,255,0.1); border:1px solid rgba(112,0,255,0.3); padding:16px; border-radius:12px;">
+                        <div style="font-size:13px; font-weight:700; color:var(--vt-neon-purple); margin-bottom:8px;">💡 Automatización con Windows Task Scheduler</div>
+                        <div style="font-size:11px; color:var(--vt-text-dim); line-height:1.6;">
+                            1. Busca "Programador de tareas" en Windows<br>
+                            2. Crear tarea básica → Nombre: "Fantasy Update"<br>
+                            3. Trigger: Semanal (cada domingo a las 23:00)<br>
+                            4. Acción: Iniciar programa → <code>node</code><br>
+                            5. Argumentos: <code>C:\\Users\\Windows\\Downloads\\open code\\quiniela\\auto-update.js</code><br>
+                            6. Iniciar en: <code>C:\\Users\\Windows\\Downloads\\open code\\quiniela</code>
+                        </div>
+                    </div>
+                </div>
+            `;
+            openSidebar();
         }
 
         async function loadAdminUsers() {
