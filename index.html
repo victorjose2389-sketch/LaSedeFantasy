@@ -1266,44 +1266,34 @@
         }
 
         const GLOBAL_LEADERBOARD_FALLBACK = {
-            general: [
-                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 1025, val: 182.0 },
-                { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 965, val: 179.5 },
-                { rank: 3, team: "Victor FC", manager: "Victor", pts: 485, val: 175.5, current: true },
-                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 462, val: 168.0 },
-                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 450, val: 155.0 }
-            ],
-            nacional: [
-                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 520, val: 182.0 },
-                { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 495, val: 179.5 },
-                { rank: 3, team: "Victor FC", manager: "Victor", pts: 260, val: 175.5, current: true },
-                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 242, val: 168.0 },
-                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 230, val: 155.0 }
-            ],
-            champions: [
-                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 505, val: 182.0 },
-                { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 470, val: 179.5 },
-                { rank: 3, team: "Victor FC", manager: "Victor", pts: 225, val: 175.5, current: true },
-                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 220, val: 168.0 },
-                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 220, val: 155.0 }
-            ],
-            weekly: [
-                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 88.5, val: 182.0 },
-                { rank: 2, team: "Victor FC", manager: "Victor", pts: 82.1, val: 175.5, current: true },
-                { rank: 3, team: "Carlos FC",    manager: "Carlos", pts: 78.4, val: 182.0 },
-                { rank: 4, team: "Barça Elite",  manager: "Laura",  pts: 70.2, val: 155.0 },
-                { rank: 5, team: "Madridista Club", manager: "Ramón", pts: 65.4, val: 168.0 }
-            ],
-            value: [
-                { rank: 1, team: "Carlos FC",    manager: "Carlos", pts: 512.4, val: 182.0 },
-                { rank: 2, team: "Sofia CF",     manager: "Sofía",  pts: 498.9, val: 179.5 },
-                { rank: 3, team: "Victor FC", manager: "Victor", pts: 485.4, val: 175.5, current: true },
-                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 462.1, val: 168.0 },
-                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 450.3, val: 155.0 }
-            ]
+            general: [], nacional: [], champions: [], weekly: [], value: []
         };
 
         const SCHEDULED_MATCHES = [];
+
+        async function loadLeaderboardFromFirestore() {
+            try {
+                const snapshot = await db.collection("users").get();
+                const usersArray = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    data._uid = doc.id;
+                    usersArray.push(data);
+                });
+
+                if (usersArray.length === 0) {
+                    GLOBAL_LEADERBOARD = { general: [], nacional: [], champions: [], weekly: [], value: [] };
+                } else {
+                    GLOBAL_LEADERBOARD = FantasyLogic.generarTodasClasificaciones(usersArray);
+                }
+
+                saveLeaderboard();
+                renderRankingTable();
+                updateDashboard();
+            } catch (e) {
+                console.warn("Error cargando clasificación:", e);
+            }
+        }
 
         function saveRoster() { localStorage.setItem("FE_ROSTER", JSON.stringify(ROSTER_DATABASE)); saveUserDataToFirestore(); }
         function saveMarket() { localStorage.setItem("FE_MARKET", JSON.stringify(MARKET_DATABASE)); }
@@ -1453,7 +1443,7 @@
                         await db.collection("users").doc(cred.user.uid).set({
                             email: cred.user.email, clubName: currentUser.clubName, role: "user",
                             budget: 140.0, formation: "4-3-3",
-                            clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
+                            clubProfile: { teamName: currentUser.clubName, managerName: "", owner: cred.user.email, avatar: null },
                             transferHistory: [], weeklyHistory: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
@@ -1491,7 +1481,10 @@
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 await db.collection("users").doc(cred.user.uid).set({
                     email: email, clubName: club, role: "user",
-                    budget: 140.0, formation: "4-3-3", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    budget: 140.0, formation: "4-3-3",
+                    clubProfile: { teamName: club, managerName: "", owner: email, avatar: null },
+                    transferHistory: [], weeklyHistory: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 currentUser = { uid: cred.user.uid, email: email, role: "user", clubName: club };
                 localStorage.setItem("FE_USER_SESSION", JSON.stringify(currentUser));
@@ -1566,7 +1559,7 @@
                         await db.collection("users").doc(user.uid).set({
                             email: user.email, clubName: currentUser.clubName, role: "user",
                             budget: 140.0, formation: "4-3-3",
-                            clubProfile: { teamName: currentUser.clubName, managerName: "", owner: "", avatar: null },
+                            clubProfile: { teamName: currentUser.clubName, managerName: "", owner: user.email, avatar: null },
                             transferHistory: [], weeklyHistory: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
@@ -1609,7 +1602,7 @@
             renderSquadPanel();
             populateMarketFilters();
             applyMarketFilters();
-            renderRankingTable();
+            loadLeaderboardFromFirestore();
             window.repairOrphanedPlayers();
             saveUserDataToFirestore();
         }
@@ -2494,7 +2487,7 @@
 
             const teamName = clubProfile.teamName || (currentUser ? currentUser.clubName : "Mi Equipo");
             const managerName = clubProfile.managerName || (currentUser ? currentUser.email.split("@")[0] : "");
-            const owner = clubProfile.owner || "";
+            const owner = currentUser ? currentUser.email : (clubProfile.owner || "");
             const avatarEmoji = clubProfile.avatar || "⚽";
             const initials = teamName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
 
@@ -2718,6 +2711,7 @@
         const AVATAR_OPTIONS = ["⚽","🏟️","👑","🔥","⚡","🎯","🦁","🦈","🦅","💎","🏆","🎮"];
 
         function openProfileEditor() {
+            const userEmail = currentUser ? currentUser.email : "";
             const overlay = document.createElement("div");
             overlay.className = "profile-modal-overlay";
             overlay.id = "profile-modal-overlay";
@@ -2734,7 +2728,8 @@
                     </div>
                     <div class="pm-field">
                         <label>Propietario del Club</label>
-                        <input type="text" id="pm-owner" value="${clubProfile.owner || ""}" placeholder="Nombre real o usuario">
+                        <input type="text" id="pm-owner" value="${userEmail}" disabled style="opacity:0.6; cursor:not-allowed;">
+                        <div style="font-size:10px; color:var(--vt-text-dim); margin-top:4px;">Asignado automáticamente al registro</div>
                     </div>
                     <div class="pm-field">
                         <label>Escudo / Avatar del Club</label>
@@ -2763,7 +2758,6 @@
         function saveProfileEditor() {
             const teamName = document.getElementById("pm-team-name").value.trim();
             const managerName = document.getElementById("pm-manager").value.trim();
-            const owner = document.getElementById("pm-owner").value.trim();
             const selectedEl = document.querySelector("#pm-avatar-picker .avatar-option.selected");
             const avatar = selectedEl ? selectedEl.dataset.emoji : null;
 
@@ -2771,7 +2765,7 @@
 
             clubProfile.teamName = teamName;
             clubProfile.managerName = managerName;
-            clubProfile.owner = owner;
+            clubProfile.owner = currentUser ? currentUser.email : (clubProfile.owner || "");
             clubProfile.avatar = avatar;
 
             if (currentUser) currentUser.clubName = teamName;
