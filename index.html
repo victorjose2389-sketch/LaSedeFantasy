@@ -1018,7 +1018,9 @@
                     </div>
                 </div>
                 <div class="ranking-tabs">
-                    <button class="rank-tab active" onclick="switchRankings('general')">Global</button>
+                    <button class="rank-tab active" onclick="switchRankings('general')">General</button>
+                    <button class="rank-tab" onclick="switchRankings('nacional')">Nacional</button>
+                    <button class="rank-tab" onclick="switchRankings('champions')">Champions</button>
                     <button class="rank-tab" onclick="switchRankings('weekly')">Jornada</button>
                     <button class="rank-tab" onclick="switchRankings('value')">Valor</button>
                 </div>
@@ -1093,6 +1095,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="players-ucl.js"></script>
     <script src="teams-ucl.js"></script>
+    <script src="logic.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBHPDZ_E1e6RKrHYN0cLtWWQrgYkA7Z8WU",
@@ -1266,13 +1269,27 @@
             general: [
                 { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 1025, val: 182.0 },
                 { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 965, val: 179.5 },
-                { rank: 3, team: "Victor FC (Tú)", manager: "Victor", pts: 485, val: 175.5, current: true },
+                { rank: 3, team: "Victor FC", manager: "Victor", pts: 485, val: 175.5, current: true },
                 { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 462, val: 168.0 },
                 { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 450, val: 155.0 }
             ],
+            nacional: [
+                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 520, val: 182.0 },
+                { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 495, val: 179.5 },
+                { rank: 3, team: "Victor FC", manager: "Victor", pts: 260, val: 175.5, current: true },
+                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 242, val: 168.0 },
+                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 230, val: 155.0 }
+            ],
+            champions: [
+                { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 505, val: 182.0 },
+                { rank: 2, team: "Real Madrid Elite", manager: "Mbappé", pts: 470, val: 179.5 },
+                { rank: 3, team: "Victor FC", manager: "Victor", pts: 225, val: 175.5, current: true },
+                { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 220, val: 168.0 },
+                { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 220, val: 155.0 }
+            ],
             weekly: [
                 { rank: 1, team: "Quantum Football Club", manager: "Quantum_User1", pts: 88.5, val: 182.0 },
-                { rank: 2, team: "Victor FC (Tú)", manager: "Victor", pts: 82.1, val: 175.5, current: true },
+                { rank: 2, team: "Victor FC", manager: "Victor", pts: 82.1, val: 175.5, current: true },
                 { rank: 3, team: "Carlos FC",    manager: "Carlos", pts: 78.4, val: 182.0 },
                 { rank: 4, team: "Barça Elite",  manager: "Laura",  pts: 70.2, val: 155.0 },
                 { rank: 5, team: "Madridista Club", manager: "Ramón", pts: 65.4, val: 168.0 }
@@ -1280,7 +1297,7 @@
             value: [
                 { rank: 1, team: "Carlos FC",    manager: "Carlos", pts: 512.4, val: 182.0 },
                 { rank: 2, team: "Sofia CF",     manager: "Sofía",  pts: 498.9, val: 179.5 },
-                { rank: 3, team: "Victor FC (Tú)", manager: "Victor", pts: 485.4, val: 175.5, current: true },
+                { rank: 3, team: "Victor FC", manager: "Victor", pts: 485.4, val: 175.5, current: true },
                 { rank: 4, team: "Madridista Club", manager: "Ramón", pts: 462.1, val: 168.0 },
                 { rank: 5, team: "Barça Elite",  manager: "Laura",  pts: 450.3, val: 155.0 }
             ]
@@ -1754,6 +1771,14 @@
         const _posNorm = { GK: "GK", POR: "GK", DF: "DF", DEF: "DF", MF: "MF", MED: "MF", FW: "FW", DEL: "FW" };
         function normPos(pos) { return _posNorm[pos] || pos; }
 
+        function calcularPuntosSofaScore(player) {
+            return FantasyLogic.calcularPuntosSofaScore(player);
+        }
+
+        function hasPlayed(player) {
+            return FantasyLogic.jugadorActivo(player);
+        }
+
         function handleDragStart(e, slotKey) {
             _dragSourceKey = slotKey;
             e.dataTransfer.effectAllowed = "move";
@@ -2172,23 +2197,19 @@
         function autoSubstitution() {
             const starters = getStarterKeys();
             const benchKeys = getBenchKeys();
-            let subsMade = [];
 
-            for (const slotKey of starters) {
-                const player = ROSTER_DATABASE[slotKey];
-                if (!player || player.rating > 0) continue;
-                const slotPos = getSlotPos(slotKey);
+            const result = FantasyLogic.procesarSustituciones(
+                ROSTER_DATABASE, starters, benchKeys, getSlotPos
+            );
 
-                for (const benchKey of benchKeys) {
-                    const sub = ROSTER_DATABASE[benchKey];
-                    if (!sub || sub.rating <= 0) continue;
-                    if (normPos(sub.pos) !== normPos(slotPos)) continue;
-
-                    ROSTER_DATABASE[slotKey] = sub;
-                    ROSTER_DATABASE[benchKey] = null;
-                    subsMade.push(`${player.name} (0.0) → ${sub.name}`);
-                    break;
-                }
+            // Aplicar sustituciones al roster real
+            const subsMade = [];
+            for (const sub of result.sustituciones) {
+                ROSTER_DATABASE[sub.slotTitular] = result.rosterClone[sub.slotTitular];
+                ROSTER_DATABASE[sub.slotSuplente] = result.rosterClone[sub.slotSuplente];
+                subsMade.push(
+                    `${sub.titular} (${sub.outPts}) → ${sub.suplente} (${sub.inPts})`
+                );
             }
 
             return subsMade;
@@ -2241,28 +2262,48 @@
         function renderRankingTable() {
             const table = document.getElementById("leaderboard-table");
             if (!table) return;
-            const sorted = GLOBAL_LEADERBOARD[activeRankingTab] || GLOBAL_LEADERBOARD_FALLBACK[activeRankingTab];
+
+            let displayData = GLOBAL_LEADERBOARD[activeRankingTab] || GLOBAL_LEADERBOARD_FALLBACK[activeRankingTab];
+            if (!displayData || displayData.length === 0) displayData = GLOBAL_LEADERBOARD_FALLBACK.general;
+
+            const colLabelMap = {
+                general: 'Ptos Totales',
+                nacional: 'Ptos Liga',
+                champions: 'Ptos UCL',
+                weekly: 'Ptos Jornada',
+                value: 'Valor Plantilla'
+            };
+            const colLabel = colLabelMap[activeRankingTab] || 'Ptos Totales';
+
             let html = `<thead><tr>
                 <th>#</th><th>Usuario</th><th>Equipo Fantasy</th>
-                <th style="text-align: right;">${activeRankingTab === 'value' ? 'Mercado (Gasto)' : 'Ptos Totales'}</th>
+                <th style="text-align: right;">${colLabel}</th>
             </tr></thead><tbody>`;
-            sorted.forEach((row, i) => {
+            displayData.forEach((row, i) => {
                 html += `<tr class="${row.current ? 'row-user-active' : ''}">
                     <td style="font-weight: 700;">${i + 1}.</td>
                     <td style="display:flex; align-items:center; gap:10px;"><div style="width:24px;height:24px;background:#555;border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px;">👤</div>${row.manager}</td>
                     <td style="font-weight: 600; color:var(--vt-text-dim);">${row.team}</td>
                     <td style="text-align: right; font-weight: 700;">
-                        ${activeRankingTab === 'value' ? `${row.val.toFixed(1)}M` : `${row.pts.toFixed(1)}`}
+                        ${activeRankingTab === 'value' ? `${row.val.toFixed(1)}M` : `${(row.pts || 0).toFixed(1)}`}
                     </td></tr>`;
             });
             table.innerHTML = html + "</tbody>";
         }
 
+        function rebuildLeaderboardFromFirestore(usersArray) {
+            GLOBAL_LEADERBOARD = FantasyLogic.generarTodasClasificaciones(usersArray);
+            saveLeaderboard();
+            renderRankingTable();
+        }
+
         function switchRankings(tabKey) {
             activeRankingTab = tabKey; renderRankingTable();
+            const labelMap = { general: 'general', nacional: 'nacional', champions: 'champions', weekly: 'jornada', value: 'valor' };
+            const target = labelMap[tabKey] || tabKey;
             document.querySelectorAll(".rank-tab").forEach(tab => {
                 const inner = tab.innerText.toLowerCase();
-                tab.classList.toggle("active", (tabKey === 'general' && inner.includes('global')) || (tabKey === 'weekly' && inner.includes('jornada')) || (tabKey === 'value' && inner.includes('valor')));
+                tab.classList.toggle("active", inner.includes(target));
             });
         }
 
@@ -2305,36 +2346,53 @@
             const resultEl = document.getElementById("admin-sim-result");
             if (!resultEl) { showNotification("Simulación completada.", "success"); return; }
             resultEl.innerHTML = "Simulando...";
+            const isUcl = type === "champions";
 
+            // Simular ratings/stats para mercado
             MARKET_DATABASE.forEach(p => {
                 p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
+                p.minutes = Math.floor(Math.random() * 90);
+                p.goals = Math.random() < 0.15 ? Math.floor(Math.random() * 3) : 0;
+                p.assists = Math.random() < 0.1 ? Math.floor(Math.random() * 2) : 0;
             });
 
+            // Simular stats para plantilla del usuario
             for (let key of ALL_SLOT_KEYS) {
                 const p = ROSTER_DATABASE[key];
                 if (!p) continue;
-                p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
-                p.pts = p.rating;
+                const played = Math.random() > 0.12;
+                p.rating = played ? Math.round((Math.random() * 4.5 + 5.5) * 10) / 10 : 0;
+                p.minutes = played ? Math.floor(Math.random() * 90) + 1 : 0;
+                p.goals = played && Math.random() < 0.15 ? Math.floor(Math.random() * 3) : 0;
+                p.assists = played && Math.random() < 0.1 ? Math.floor(Math.random() * 2) : 0;
             }
 
+            // Ejecutar sustituciones ANTES de calcular puntos finales
             const subsMade = autoSubstitution();
 
+            // Calcular puntos finales con la escala SofaScore
             for (let key of ALL_SLOT_KEYS) {
                 const p = ROSTER_DATABASE[key];
-                if (p && p.rating > 0) p.pts = p.rating;
+                if (!p) continue;
+                const matchPts = FantasyLogic.calcularPuntosSofaScore(p);
+                p.pts = matchPts;
+                if (isUcl) { p.ptsUcl = matchPts; p.ptsLiga = 0; }
+                else { p.ptsLiga = matchPts; p.ptsUcl = 0; }
             }
 
             const fluctuation = applyPriceFluctuation();
-
             const userPts = calculateUserPoints();
+            const gw = weeklyHistory.length + 1;
+            weeklyHistory.push({ gw: gw, pts: userPts, type: type });
+            saveWeeklyHistory();
 
             saveRoster(); saveMarket(); saveUserDataToFirestore();
             logWeeklyPoints();
 
-            let html = `<span style="color:var(--vt-neon-cyan);">✓ Jornada ${type} completada.</span><br>`;
-            html += `📊 Tus puntos: <b>${userPts.toFixed(1)}</b> | Rating promedio: <b>${(userPts / 11).toFixed(1)}</b><br>`;
-            if (subsMade.length > 0) html += `🔄 Autosustituciones: ${subsMade.join(", ")}<br>`;
-            html += `📈 Subidas: ${fluctuation.risen} | Estables: ${fluctuation.stable} | Bajadas: ${fluctuation.dropped}`;
+            let html = `<span style="color:var(--vt-neon-cyan);">Jornada ${type.toUpperCase()} completada.</span><br>`;
+            html += `Tus puntos: <b>${userPts.toFixed(1)}</b> | Rating promedio: <b>${(userPts / 11).toFixed(1)}</b><br>`;
+            if (subsMade.length > 0) html += `Autosustituciones: ${subsMade.join(", ")}<br>`;
+            html += `Subidas: ${fluctuation.risen} | Estables: ${fluctuation.stable} | Bajadas: ${fluctuation.dropped}`;
             resultEl.innerHTML = html;
 
             updateDashboard(); updateSquadStats();
