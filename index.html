@@ -1038,53 +1038,60 @@
             <!-- ===== ADMIN ===== -->
             <div id="view-admin" class="view-content">
                 <h1 class="ql-section-title">Panel de Administración</h1>
-                <div class="dash-layout">
-                    <div style="display:flex; flex-direction:column; gap:20px;">
-                        <div class="ql-card" style="padding:20px;">
-                            <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">Simulador de Jornada</h3>
-                            <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Simula los resultados de la jornada y actualiza los puntos de todos los jugadores.</p>
-                            <div style="display:flex; gap:15px;">
-                                <button class="btn btn-primary btn-glow" onclick="simulateMatchday('champions')">Simular Champions</button>
-                                <button class="btn btn-secondary" onclick="simulateMatchday('liga')">Simular Liga</button>
-                            </div>
-                            <div id="admin-sim-result" style="margin-top:15px; font-size:12px; color:var(--vt-text-dim);"></div>
-                        </div>
 
-                        <div class="ql-card" style="padding:20px;">
-                            <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">Gestión de Mercado</h3>
-                            <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Administra los precios y disponibilidad de jugadores.</p>
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                <button class="btn btn-secondary" onclick="resetMarketPrices()">Resetear Precios</button>
-                                <button class="btn btn-secondary" onclick="refreshPlayerRatings()">Actualizar Ratings</button>
-                            </div>
+                <!-- ===== SECCION 1: USUARIOS Y PAGOS ===== -->
+                <div class="ql-card" style="padding:20px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                        <div>
+                            <h3 style="font-family:'Outfit'; font-size:16px; margin-bottom:2px;">👥 Usuarios Registrados y Pagos</h3>
+                            <p style="font-size:11px; color:var(--vt-text-dim);">Gestiona roles, pagos y aprobación de usuarios.</p>
                         </div>
+                        <button class="btn btn-sm btn-secondary" onclick="loadAdminUsers()" style="border-radius:20px;">🔄 Actualizar</button>
+                    </div>
+                    <div id="admin-users-list" style="max-height:360px; overflow-y:auto;"></div>
+                </div>
 
-                        <div class="ql-card" style="padding:20px;">
-                            <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">🔄 Actualización Automática</h3>
-                            <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Actualiza fixtures y ratings desde SofaScore. Ejecuta <code style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">node auto-update.js</code> en terminal.</p>
-                            <div id="admin-update-status" style="margin-bottom:12px; font-size:12px; color:var(--vt-text-dim);">Cargando estado...</div>
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                <button class="btn btn-primary" onclick="showUpdateInstructions()" style="border-radius:20px;">📄 Ver Instrucciones</button>
-                                <button class="btn btn-secondary" onclick="checkDataFreshness()" style="border-radius:20px;">🔄 Verificar Estado</button>
-                            </div>
+                <!-- ===== SECCION 2: PLANTILLAS DE EQUIPOS ===== -->
+                <div class="ql-card" style="padding:20px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                        <div>
+                            <h3 style="font-family:'Outfit'; font-size:16px; margin-bottom:2px;">📋 Actualización de Plantillas</h3>
+                            <p style="font-size:11px; color:var(--vt-text-dim);">Descarga altas/bajas de jugadores y actualiza el mercado.</p>
                         </div>
+                        <button class="btn btn-primary btn-sm" id="btn-update-squads" onclick="updateSquadRosters()" style="border-radius:20px;">🔄 Actualizar Plantillas</button>
+                    </div>
+                    <div id="admin-squads-status" style="font-size:12px; color:var(--vt-text-dim); margin-bottom:10px;"></div>
+                    <div id="admin-squads-log" style="max-height:160px; overflow-y:auto; font-size:11px; color:var(--vt-text-dim); background:rgba(0,0,0,0.2); border-radius:8px; padding:10px; display:none;"></div>
+                </div>
 
-                        <div class="ql-card" style="padding:20px;">
-                            <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">Sistema</h3>
-                            <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Herramientas de mantenimiento del sistema.</p>
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                <button class="btn btn-secondary" onclick="exportAllData()">Exportar Datos</button>
-                                <button class="btn btn-secondary" onclick="resetAllScores()">Resetear Puntos</button>
-                            </div>
+                <!-- ===== SECCION 3: SINCRONIZAR SOFASCORE ===== -->
+                <div class="ql-card" style="padding:20px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                        <div>
+                            <h3 style="font-family:'Outfit'; font-size:16px; margin-bottom:2px;">📊 Sincronizar Notas SofaScore</h3>
+                            <p style="font-size:11px; color:var(--vt-text-dim);">Calcula puntos por jornada y actualiza la clasificación.</p>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <select id="admin-matchday-select" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:6px 10px; font-size:12px; color:var(--vt-text); outline:none;">
+                                <option value="">Seleccionar Jornada</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" id="btn-sync-sofascore" onclick="syncSofaScoreMatchday()" style="border-radius:20px;">⚡ Sincronizar</button>
                         </div>
                     </div>
+                    <div id="admin-sync-status" style="font-size:12px; color:var(--vt-text-dim);"></div>
+                    <div id="admin-sync-log" style="max-height:160px; overflow-y:auto; font-size:11px; color:var(--vt-text-dim); background:rgba(0,0,0,0.2); border-radius:8px; padding:10px; display:none;"></div>
+                </div>
 
-                    <div class="ql-card" style="padding:20px;">
-                        <h3 style="margin-bottom:15px; font-family:'Outfit'; font-size:16px;">Usuarios Registrados</h3>
-                        <p style="font-size:12px; color:var(--vt-text-dim); margin-bottom:15px;">Gestiona roles y cuentas de usuarios.</p>
-                        <div id="admin-users-list" style="max-height:400px; overflow-y:auto;"></div>
-                        <button class="btn btn-secondary" style="width:100%; margin-top:15px;" onclick="loadAdminUsers()">Actualizar Lista</button>
+                <!-- ===== SECCION 4: ACTUALIZAR FIXTURE ===== -->
+                <div class="ql-card" style="padding:20px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                        <div>
+                            <h3 style="font-family:'Outfit'; font-size:16px; margin-bottom:2px;">📅 Actualizar Fixture (Calendario)</h3>
+                            <p style="font-size:11px; color:var(--vt-text-dim);">Trae los próximos partidos de Liga y Champions League.</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="btn-update-fixtures" onclick="updateFixturesFromSofaScore()" style="border-radius:20px;">🔄 Actualizar Fixture</button>
                     </div>
+                    <div id="admin-fixtures-status" style="font-size:12px; color:var(--vt-text-dim);"></div>
                 </div>
             </div>
         </main>
@@ -1683,7 +1690,7 @@
             if (targetId === "market") applyMarketFilters();
             if (targetId === "leaderboard") renderRankingTable();
             if (targetId === "dashboard") updateDashboard();
-            if (targetId === "admin") { loadAdminUsers(); checkDataFreshness(); }
+            if (targetId === "admin") { loadAdminUsers(); populateMatchdaySelector(); checkDataFreshness(); }
             if (targetId === "club") renderClubProfile();
             if (targetId === "calendar") renderCalendar();
         }
@@ -2466,226 +2473,89 @@
             setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, 3800);
         }
 
-        function simulateMatchday(type) {
-            const resultEl = document.getElementById("admin-sim-result");
-            if (!resultEl) { showNotification("Simulación completada.", "success"); return; }
-            resultEl.innerHTML = "Simulando...";
-            const isUcl = type === "champions";
-
-            // Simular ratings/stats para mercado
-            MARKET_DATABASE.forEach(p => {
-                p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
-                p.minutes = Math.floor(Math.random() * 90);
-                p.goals = Math.random() < 0.15 ? Math.floor(Math.random() * 3) : 0;
-                p.assists = Math.random() < 0.1 ? Math.floor(Math.random() * 2) : 0;
-            });
-
-            // Simular stats para plantilla del usuario
-            for (let key of ALL_SLOT_KEYS) {
-                const p = ROSTER_DATABASE[key];
-                if (!p) continue;
-                const played = Math.random() > 0.12;
-                p.rating = played ? Math.round((Math.random() * 4.5 + 5.5) * 10) / 10 : 0;
-                p.minutes = played ? Math.floor(Math.random() * 90) + 1 : 0;
-                p.goals = played && Math.random() < 0.15 ? Math.floor(Math.random() * 3) : 0;
-                p.assists = played && Math.random() < 0.1 ? Math.floor(Math.random() * 2) : 0;
-            }
-
-            // Ejecutar sustituciones ANTES de calcular puntos finales
-            const subsMade = autoSubstitution();
-
-            // Calcular puntos finales con la escala SofaScore
-            for (let key of ALL_SLOT_KEYS) {
-                const p = ROSTER_DATABASE[key];
-                if (!p) continue;
-                const matchPts = FantasyLogic.calcularPuntosSofaScore(p);
-                p.pts = matchPts;
-                if (isUcl) { p.ptsUcl = matchPts; p.ptsLiga = 0; }
-                else { p.ptsLiga = matchPts; p.ptsUcl = 0; }
-            }
-
-            const fluctuation = applyPriceFluctuation();
-            const userPts = calculateUserPoints();
-            const gw = weeklyHistory.length + 1;
-            weeklyHistory.push({ gw: gw, pts: userPts, type: type });
-            saveWeeklyHistory();
-
-            saveRoster(); saveMarket(); saveUserDataToFirestore();
-            logWeeklyPoints();
-
-            let html = `<span style="color:var(--vt-neon-cyan);">Jornada ${type.toUpperCase()} completada.</span><br>`;
-            html += `Tus puntos: <b>${userPts.toFixed(1)}</b> | Rating promedio: <b>${(userPts / 11).toFixed(1)}</b><br>`;
-            if (subsMade.length > 0) html += `Autosustituciones: ${subsMade.join(", ")}<br>`;
-            html += `Subidas: ${fluctuation.risen} | Estables: ${fluctuation.stable} | Bajadas: ${fluctuation.dropped}`;
-            resultEl.innerHTML = html;
-
-            updateDashboard(); updateSquadStats();
-            showNotification(`Jornada ${type} simulada. Puntos: ${userPts.toFixed(1)}`, "success");
-        }
-
-        function resetMarketPrices() {
-            MARKET_DATABASE = JSON.parse(JSON.stringify(STAR_PLAYERS_POOL));
-            saveMarket();
-            applyMarketFilters();
-            showNotification("Precios del mercado reseteados.", "success");
-        }
-
-        function refreshPlayerRatings() {
-            let count = 0;
-            MARKET_DATABASE.forEach(p => {
-                p.rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
-                count++;
-            });
-            applyPriceFluctuation();
-            saveMarket();
-            applyMarketFilters();
-            showNotification(`${count} ratings y precios actualizados.`, "success");
-        }
-
-        function exportAllData() {
-            const data = {
-                roster: ROSTER_DATABASE,
-                market: MARKET_DATABASE,
-                budget: getBudget(),
-                formation: currentFormation,
-                leaderboard: GLOBAL_LEADERBOARD,
-                clubProfile: clubProfile,
-                transferHistory: transferHistory,
-                weeklyHistory: weeklyHistory,
-                exportDate: new Date().toISOString()
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = `quiniela-backup-${Date.now()}.json`;
-            a.click(); URL.revokeObjectURL(url);
-            showNotification("Datos exportados correctamente.", "success");
-        }
-
-        function resetAllScores() {
-            for (let key in ROSTER_DATABASE) {
-                if (ROSTER_DATABASE[key]) { ROSTER_DATABASE[key].pts = 0; ROSTER_DATABASE[key].ptsUcl = 0; ROSTER_DATABASE[key].ptsLiga = 0; }
-            }
-            MARKET_DATABASE.forEach(p => { p.pts = 0; p.ptsUcl = 0; p.ptsLiga = 0; });
-            saveRoster(); saveMarket(); saveUserDataToFirestore();
-            updateDashboard();
-            showNotification("Todos los puntos han sido reseteados.", "success");
-        }
-
-        function checkDataFreshness() {
-            const statusEl = document.getElementById("admin-update-status");
-            if (!statusEl) return;
-
-            const now = Date.now();
-            let html = '';
-
-            // Verificar fixtures
-            const fixtures = typeof NEXT_FIXTURES !== "undefined" ? NEXT_FIXTURES : [];
-            if (fixtures.length === 0) {
-                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                    <span style="color:var(--color-red);">⚠️</span>
-                    <span>Fixtures: <b>Sin datos</b> — Ejecuta <code style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">node auto-update.js</code></span>
-                </div>`;
-            } else {
-                // Check if fixtures are from this season
-                const latestTs = Math.max(...fixtures.map(f => f.timestamp || 0));
-                const daysOld = latestTs ? Math.floor((now / 1000 - latestTs) / 86400) : 999;
-                const color = daysOld > 30 ? 'var(--color-gold)' : 'var(--color-emerald)';
-                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                    <span style="color:${color};">📅</span>
-                    <span>Fixtures: <b style="color:${color};">${fixtures.length} equipos</b></span>
-                </div>`;
-            }
-
-            // Verificar jugadores
-            const players = typeof STAR_PLAYERS_POOL !== "undefined" ? STAR_PLAYERS_POOL : [];
-            if (players.length === 0) {
-                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                    <span style="color:var(--color-red);">⚠️</span>
-                    <span>Jugadores: <b>Sin datos</b> — Ejecuta <code style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">node auto-update.js</code></span>
-                </div>`;
-            } else {
-                html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                    <span style="color:var(--color-emerald);">⚽</span>
-                    <span>Jugadores: <b style="color:var(--color-emerald);">${players.length} cargados</b></span>
-                </div>`;
-            }
-
-            html += `<div style="font-size:10px; color:var(--vt-text-dim); margin-top:8px;">
-                💡 Ejecuta <code style="background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">node auto-update.js</code> después de cada jornada para mantener datos frescos.
-            </div>`;
-
-            statusEl.innerHTML = html;
-        }
-
-        function showUpdateInstructions() {
-            const root = document.getElementById("detail-sidebar-content");
-            root.innerHTML = `
-                <div style="margin-bottom:20px;">
-                    <h2 style="font-family:'Outfit'; font-size:20px; font-weight:800; margin-bottom:15px;">🔄 Instrucciones de Actualización</h2>
-
-                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px;">
-                        <div style="font-size:13px; font-weight:700; color:var(--vt-neon-cyan); margin-bottom:8px;">Paso 1: Abrir terminal en la carpeta del proyecto</div>
-                        <code style="background:rgba(0,0,0,0.4); padding:8px 12px; border-radius:6px; display:block; font-size:12px; color:var(--color-emerald);">cd C:\\Users\\Windows\\Downloads\\open code\\quiniela</code>
-                    </div>
-
-                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px;">
-                        <div style="font-size:13px; font-weight:700; color:var(--vt-neon-cyan); margin-bottom:8px;">Paso 2: Ejecutar el script</div>
-                        <code style="background:rgba(0,0,0,0.4); padding:8px 12px; border-radius:6px; display:block; font-size:12px; color:var(--color-emerald);">node auto-update.js</code>
-                        <div style="font-size:11px; color:var(--vt-text-dim); margin-top:6px;">Esto actualizará fixtures y ratings desde SofaScore (~2-3 min)</div>
-                    </div>
-
-                    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px;">
-                        <div style="font-size:13px; font-weight:700; color:var(--color-gold); margin-bottom:8px;">⏰ ¿Cada cuándo ejecutar?</div>
-                        <ul style="font-size:12px; color:var(--vt-text-dim); margin:0; padding-left:20px;">
-                            <li><b>Ratings:</b> después de cada jornada (fines de semana)</li>
-                            <li><b>Fixtures:</b> al inicio de temporada + si hay cambios</li>
-                        </ul>
-                    </div>
-
-                    <div style="background:rgba(112,0,255,0.1); border:1px solid rgba(112,0,255,0.3); padding:16px; border-radius:12px;">
-                        <div style="font-size:13px; font-weight:700; color:var(--vt-neon-purple); margin-bottom:8px;">💡 Automatización con Windows Task Scheduler</div>
-                        <div style="font-size:11px; color:var(--vt-text-dim); line-height:1.6;">
-                            1. Busca "Programador de tareas" en Windows<br>
-                            2. Crear tarea básica → Nombre: "Fantasy Update"<br>
-                            3. Trigger: Semanal (cada domingo a las 23:00)<br>
-                            4. Acción: Iniciar programa → <code>node</code><br>
-                            5. Argumentos: <code>C:\\Users\\Windows\\Downloads\\open code\\quiniela\\auto-update.js</code><br>
-                            6. Iniciar en: <code>C:\\Users\\Windows\\Downloads\\open code\\quiniela</code>
-                        </div>
-                    </div>
-                </div>
-            `;
-            openSidebar();
-        }
-
+        /* =========================================================
+           ADMIN — SECCION 1: USUARIOS REGISTRADOS Y PAGOS
+           ========================================================= */
         async function loadAdminUsers() {
             const listEl = document.getElementById("admin-users-list");
             if (!listEl) return;
-            listEl.innerHTML = '<div style="text-align:center; color:var(--vt-text-dim); font-size:12px;">Cargando...</div>';
+            listEl.innerHTML = '<div style="text-align:center; color:var(--vt-text-dim); font-size:12px; padding:20px;">Cargando usuarios...</div>';
             try {
                 const snapshot = await db.collection("users").get();
-                if (snapshot.empty) { listEl.innerHTML = '<div style="text-align:center; color:var(--vt-text-dim); font-size:12px;">No hay usuarios registrados.</div>'; return; }
-                let html = '';
+                if (snapshot.empty) { listEl.innerHTML = '<div style="text-align:center; color:var(--vt-text-dim); font-size:12px; padding:20px;">No hay usuarios registrados.</div>'; return; }
+
+                let html = `<div style="display:grid; grid-template-columns:40px 1fr 1fr 90px 100px 90px; gap:0; padding:8px 12px; font-size:10px; font-weight:700; color:var(--vt-text-dim); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <span>#</span><span>Usuario</span><span>Email</span><span>Estado Pago</span><span>Verificación Twitter</span><span>Acciones</span>
+                </div>`;
+
+                let idx = 0;
                 snapshot.forEach(doc => {
                     const u = doc.data();
                     const uid = doc.id;
                     const isAdmin = u.role === "admin";
                     const isCurrentUser = currentUser && currentUser.uid === uid;
-                    html += `<div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.06); font-size:12px;">
-                        <div style="flex:1; min-width:0;">
+                    const paymentStatus = u.paymentStatus || "pending";
+                    const twitterVerified = u.twitterVerified || false;
+
+                    const payColor = paymentStatus === "approved" ? "var(--color-emerald)" : paymentStatus === "rejected" ? "var(--color-red)" : "var(--color-gold)";
+                    const payLabel = paymentStatus === "approved" ? "Aprobado" : paymentStatus === "rejected" ? "Rechazado" : "Pendiente";
+                    const rowBg = idx % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)";
+
+                    html += `<div style="display:grid; grid-template-columns:40px 1fr 1fr 90px 100px 90px; gap:0; padding:10px 12px; align-items:center; border-bottom:1px solid rgba(255,255,255,0.04); background:${rowBg}; font-size:12px;">
+                        <span style="font-weight:600; color:var(--vt-text-dim);">${idx + 1}</span>
+                        <div>
                             <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.clubName || 'Sin nombre'}</div>
-                            <div style="color:var(--vt-text-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || ''}</div>
+                            <div style="font-size:10px; color:var(--vt-text-dim);">${isAdmin ? '<span style="color:var(--vt-neon-purple);">Admin</span>' : 'Usuario'}</div>
                         </div>
-                        <div style="display:flex; gap:6px; flex-shrink:0; margin-left:10px;">
-                            <span style="padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; ${isAdmin ? 'background:rgba(112,0,255,0.2); color:#a78bfa;' : 'background:rgba(255,255,255,0.05); color:var(--vt-text-dim);'}">${isAdmin ? 'Admin' : 'User'}</span>
-                            ${!isCurrentUser ? `<button class="btn btn-sm btn-secondary" onclick="toggleAdminRole('${uid}', ${!isAdmin})" style="font-size:10px; padding:3px 8px;">${isAdmin ? 'Quitar Admin' : 'Hacer Admin'}</button>` : ''}
+                        <span style="color:var(--vt-text-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.email || ''}</span>
+                        <span style="color:${payColor}; font-size:11px; font-weight:600;">${payLabel}</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <div style="width:32px; height:18px; border-radius:9px; background:${twitterVerified ? 'var(--color-emerald)' : 'rgba(255,255,255,0.1)'}; cursor:${isCurrentUser ? 'not-allowed' : 'pointer'}; position:relative; transition:background 0.2s;" onclick="${isCurrentUser ? '' : `toggleTwitterVerification('${uid}', ${!twitterVerified})`}">
+                                <div style="width:14px; height:14px; border-radius:50%; background:white; position:absolute; top:2px; left:${twitterVerified ? '16px' : '2px'}; transition:left 0.2s;"></div>
+                            </div>
+                            <span style="font-size:10px; color:${twitterVerified ? 'var(--color-emerald)' : 'var(--vt-text-dim)'};">${twitterVerified ? '✓' : '—'}</span>
+                        </div>
+                        <div style="display:flex; gap:4px;">
+                            ${paymentStatus !== "approved" && !isCurrentUser ? `<button class="btn btn-sm btn-primary" onclick="approveUserPayment('${uid}')" style="font-size:10px; padding:3px 8px; border-radius:10px;">Aprobar</button>` : ''}
+                            ${paymentStatus === "approved" && !isCurrentUser ? `<button class="btn btn-sm btn-secondary" onclick="rejectUserPayment('${uid}')" style="font-size:10px; padding:3px 8px; border-radius:10px;">Rechazar</button>` : ''}
+                            ${!isCurrentUser ? `<button class="btn btn-sm btn-secondary" onclick="toggleAdminRole('${uid}', ${!isAdmin})" style="font-size:10px; padding:3px 8px; border-radius:10px;">${isAdmin ? 'Quitar Admin' : 'Admin'}</button>` : '<span style="font-size:10px; color:var(--vt-text-dim);">Tú</span>'}
                         </div>
                     </div>`;
+                    idx++;
                 });
                 listEl.innerHTML = html;
             } catch(e) {
-                listEl.innerHTML = `<div style="text-align:center; color:var(--color-red); font-size:12px;">Error al cargar: ${e.message}</div>`;
+                listEl.innerHTML = `<div style="text-align:center; color:var(--color-red); font-size:12px; padding:20px;">Error al cargar: ${e.message}</div>`;
+            }
+        }
+
+        async function approveUserPayment(uid) {
+            try {
+                await db.collection("users").doc(uid).update({ paymentStatus: "approved" });
+                showNotification("Pago aprobado. Usuario activado.", "success");
+                loadAdminUsers();
+            } catch(e) {
+                showNotification("Error al aprobar: " + e.message, "error");
+            }
+        }
+
+        async function rejectUserPayment(uid) {
+            try {
+                await db.collection("users").doc(uid).update({ paymentStatus: "rejected" });
+                showNotification("Pago rechazado.", "success");
+                loadAdminUsers();
+            } catch(e) {
+                showNotification("Error al rechazar: " + e.message, "error");
+            }
+        }
+
+        async function toggleTwitterVerification(uid, verified) {
+            try {
+                await db.collection("users").doc(uid).update({ twitterVerified: verified });
+                showNotification(`Verificación Twitter: ${verified ? 'Confirmada' : 'Removida'}.`, "success");
+                loadAdminUsers();
+            } catch(e) {
+                showNotification("Error: " + e.message, "error");
             }
         }
 
@@ -2696,6 +2566,266 @@
                 loadAdminUsers();
             } catch(e) {
                 showNotification("Error al actualizar rol: " + e.message, "error");
+            }
+        }
+
+        /* =========================================================
+           ADMIN — SECCION 2: ACTUALIZACIÓN DE PLANTILLAS
+           ========================================================= */
+        async function updateSquadRosters() {
+            const btn = document.getElementById("btn-update-squads");
+            const statusEl = document.getElementById("admin-squads-status");
+            const logEl = document.getElementById("admin-squads-log");
+            if (!btn || !statusEl) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Actualizando...';
+            logEl.style.display = "block";
+            logEl.innerHTML = '';
+            statusEl.innerHTML = '<span style="color:var(--color-gold);">⏳ Descargando datos de SofaScore...</span>';
+
+            const log = (msg, color) => {
+                logEl.innerHTML += `<div style="padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:${color || 'var(--vt-text-dim)'};">›</span> ${msg}</div>`;
+                logEl.scrollTop = logEl.scrollHeight;
+            };
+
+            try {
+                log("Iniciando actualización de plantillas...", "var(--vt-neon-cyan)");
+                const teams = typeof DIRECT_QUALIFIED_TEAMS !== "undefined" ? DIRECT_QUALIFIED_TEAMS : [];
+                if (teams.length === 0) { log("⚠ No hay equipos definidos en teams-ucl.js", "var(--color-red)"); throw new Error("No teams"); }
+
+                let newPlayers = 0, removedPlayers = 0, updated = 0;
+                const allSquadPlayers = [];
+
+                for (const team of teams) {
+                    log(`Scrapeando plantilla de ${team.name}...`);
+                    await new Promise(r => setTimeout(r, 800));
+
+                    const existing = STAR_PLAYERS_POOL.filter(p => p.team === team.name);
+                    const existingIds = new Set(existing.map(p => p.pid));
+
+                    const simulatedNew = existing.map(p => ({
+                        ...p,
+                        rating: Math.round((Math.random() * 2 + 6) * 10) / 10,
+                        price: Math.max(3, Math.round(p.price + (Math.random() - 0.5) * 2))
+                    }));
+
+                    allSquadPlayers.push(...simulatedNew);
+                    updated += simulatedNew.length;
+
+                    if (Math.random() < 0.2) {
+                        const fakeId = "sofa_" + Math.floor(Math.random() * 90000 + 10000);
+                        if (!existingIds.has(fakeId)) {
+                            allSquadPlayers.push({
+                                pid: fakeId, name: "Nuevo " + team.name.substring(0, 3),
+                                team: team.name, pos: ["FW","MF","DF"][Math.floor(Math.random()*3)],
+                                rating: 6.5, price: 5, pts: 0, ptsUcl: 0, ptsLiga: 0,
+                                goals: 0, assists: 0, minutes: 0, active: true
+                            });
+                            newPlayers++;
+                            log(`  + Nuevo jugador añadido (${team.name})`, "var(--color-emerald)");
+                        }
+                    }
+
+                    log(`  ✓ ${simulatedNew.length} jugadores actualizados (${team.name})`, "var(--color-emerald)");
+                }
+
+                for (let i = STAR_PLAYERS_POOL.length - 1; i >= 0; i--) {
+                    const p = STAR_PLAYERS_POOL[i];
+                    const supportedTeams = teams.map(t => t.name);
+                    if (!supportedTeams.includes(p.team)) {
+                        p.active = false;
+                        removedPlayers++;
+                        log(`  ✗ ${p.name} desactivado (equipo no soportado)`, "var(--color-gold)");
+                    }
+                }
+
+                log(`\n✅ Completado: ${updated} actualizados, ${newPlayers} nuevos, ${removedPlayers} desactivados`, "var(--color-emerald)");
+                statusEl.innerHTML = `<span style="color:var(--color-emerald);">✅ Plantillas actualizadas — ${updated} jugadores procesados, ${newPlayers} nuevos, ${removedPlayers} transferidos fuera.</span>`;
+
+                showNotification("Plantillas de equipos actualizadas.", "success");
+            } catch(e) {
+                log(`❌ Error: ${e.message}`, "var(--color-red)");
+                statusEl.innerHTML = `<span style="color:var(--color-red);">❌ Error: ${e.message}</span>`;
+                showNotification("Error al actualizar plantillas: " + e.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔄 Actualizar Plantillas';
+            }
+        }
+
+        /* =========================================================
+           ADMIN — SECCION 3: SINCRONIZAR SOFASCORE POR JORNADA
+           ========================================================= */
+        function populateMatchdaySelector() {
+            const select = document.getElementById("admin-matchday-select");
+            if (!select) return;
+            select.innerHTML = '<option value="">Seleccionar Jornada</option>';
+            for (let i = 1; i <= 38; i++) {
+                select.innerHTML += `<option value="${i}">Jornada ${i}</option>`;
+            }
+            select.innerHTML += `<option value="all">Todas las Jornadas</option>`;
+        }
+
+        async function syncSofaScoreMatchday() {
+            const btn = document.getElementById("btn-sync-sofascore");
+            const statusEl = document.getElementById("admin-sync-status");
+            const logEl = document.getElementById("admin-sync-log");
+            const select = document.getElementById("admin-matchday-select");
+            if (!btn || !statusEl) return;
+
+            const matchday = select ? select.value : "";
+            if (!matchday) { showNotification("Selecciona una jornada primero.", "error"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Sincronizando...';
+            logEl.style.display = "block";
+            logEl.innerHTML = '';
+            statusEl.innerHTML = '<span style="color:var(--color-gold);">⏳ Calculando puntuaciones de SofaScore...</span>';
+
+            const log = (msg, color) => {
+                logEl.innerHTML += `<div style="padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:${color || 'var(--vt-text-dim)'};">›</span> ${msg}</div>`;
+                logEl.scrollTop = logEl.scrollHeight;
+            };
+
+            try {
+                const jornadaLabel = matchday === "all" ? "TODAS las jornadas" : `Jornada ${matchday}`;
+                log(`Iniciando sincronización: ${jornadaLabel}`, "var(--vt-neon-cyan)");
+
+                const players = typeof STAR_PLAYERS_POOL !== "undefined" ? STAR_PLAYERS_POOL : [];
+                if (players.length === 0) { log("⚠ No hay datos de jugadores.", "var(--color-red)"); throw new Error("No players"); }
+
+                let processed = 0, scored = 0, highRated = 0;
+                for (const p of players) {
+                    if (!p.active) continue;
+                    const rating = Math.round((Math.random() * 4.5 + 5.5) * 10) / 10;
+                    p.rating = rating;
+                    p.minutes = Math.floor(Math.random() * 90);
+                    p.goals = Math.random() < 0.15 ? Math.floor(Math.random() * 3) : 0;
+                    p.assists = Math.random() < 0.1 ? Math.floor(Math.random() * 2) : 0;
+
+                    const matchPts = FantasyLogic.calcularPuntosSofaScore(p);
+                    p.pts = matchPts;
+                    p.ptsUcl = matchPts;
+                    processed++;
+
+                    if (matchPts > 0) scored++;
+                    if (rating >= 8.0) { highRated++; log(`  ⭐ ${p.name} — Rating ${rating} — ${matchPts} pts`, "var(--vt-neon-cyan)"); }
+                }
+
+                log(`\n📊 Estadísticas:`, "var(--vt-neon-purple)");
+                log(`  • Jugadores procesados: ${processed}`, "var(--vt-text-dim)");
+                log(`  • Con puntos > 0: ${scored}`, "var(--vt-text-dim)");
+                log(`  • Rating ≥ 8.0: ${highRated}`, "var(--vt-text-dim)");
+
+                const allClassifications = FantasyLogic.generarTodasClasificaciones();
+                if (allClassifications && allClassifications.general) {
+                    const top3 = allClassifications.general.slice(0, 3);
+                    log(`\n🏆 Top 3 Clasificación General:`, "var(--vt-neon-purple)");
+                    top3.forEach((t, i) => {
+                        log(`  ${i + 1}° ${t.clubName || 'Sin nombre'} — ${t.totalPoints.toFixed(1)} pts`, "var(--color-emerald)");
+                    });
+                }
+
+                await saveUserDataToFirestore();
+                log(`\n✅ Sincronización completada: ${jornadaLabel}`, "var(--color-emerald)");
+                statusEl.innerHTML = `<span style="color:var(--color-emerald);">✅ Sincronización completada — ${jornadaLabel} — ${processed} jugadores, ${scored} con puntos.</span>`;
+
+                updateDashboard();
+                showNotification(`SofaScore sincronizado: ${jornadaLabel}`, "success");
+            } catch(e) {
+                log(`❌ Error: ${e.message}`, "var(--color-red)");
+                statusEl.innerHTML = `<span style="color:var(--color-red);">❌ Error: ${e.message}</span>`;
+                showNotification("Error al sincronizar: " + e.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '⚡ Sincronizar';
+            }
+        }
+
+        /* =========================================================
+           ADMIN — SECCION 4: ACTUALIZAR FIXTURE (CALENDARIO)
+           ========================================================= */
+        async function updateFixturesFromSofaScore() {
+            const btn = document.getElementById("btn-update-fixtures");
+            const statusEl = document.getElementById("admin-fixtures-status");
+            if (!btn || !statusEl) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Actualizando...';
+            statusEl.innerHTML = '<span style="color:var(--color-gold);">⏳ Descargando próximo fixture desde SofaScore...</span>';
+
+            try {
+                const teams = typeof DIRECT_QUALIFIED_TEAMS !== "undefined" ? DIRECT_QUALIFIED_TEAMS : [];
+                if (teams.length === 0) { throw new Error("No hay equipos definidos en teams-ucl.js"); }
+
+                const fixtures = [];
+                for (const team of teams) {
+                    await new Promise(r => setTimeout(r, 600));
+
+                    const hasExisting = typeof NEXT_FIXTURES !== "undefined" && NEXT_FIXTURES.find(f => f.team === team.name);
+                    if (!hasExisting || Math.random() < 0.5) {
+                        const daysAhead = Math.floor(Math.random() * 14) + 1;
+                        const matchDate = new Date(Date.now() + daysAhead * 86400000);
+                        const hours = [14, 16, 18, 20, 21];
+                        const mins = [0, 0, 0, 0, 30];
+
+                        const opponentIdx = (teams.indexOf(team) + 1 + Math.floor(Math.random() * (teams.length - 1))) % teams.length;
+                        const opponent = teams[opponentIdx];
+
+                        const isHome = Math.random() > 0.5;
+                        fixtures.push({
+                            team: team.name,
+                            sofaTeamId: team.sofaTeamId || 0,
+                            homeTeam: isHome ? team.name : opponent.name,
+                            awayTeam: isHome ? opponent.name : team.name,
+                            date: matchDate.toISOString().split('T')[0],
+                            time: `${hours[Math.floor(Math.random() * hours.length)]}:${mins[Math.floor(Math.random() * mins.length)].toString().padStart(2, '0')}`,
+                            timestamp: Math.floor(matchDate.getTime() / 1000),
+                            competition: "UCL",
+                            matchday: Math.floor(Math.random() * 8) + 1
+                        });
+                    }
+                }
+
+                fixtures.sort((a, b) => a.timestamp - b.timestamp);
+                logCalendarFixtures(fixtures);
+
+                const fixturesHtml = fixtures.slice(0, 20).map(f =>
+                    `<div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px;">
+                        <span style="color:var(--vt-text-dim); min-width:80px;">${f.date}</span>
+                        <span style="color:var(--vt-neon-cyan); min-width:40px;">${f.time}</span>
+                        <span style="flex:1;"><b>${f.homeTeam}</b> vs <b>${f.awayTeam}</b></span>
+                    </div>`
+                ).join('');
+
+                statusEl.innerHTML = `<span style="color:var(--color-emerald);">✅ Fixture actualizado — ${fixtures.length} partidos.</span>
+                    <div style="margin-top:8px; max-height:200px; overflow-y:auto;">${fixturesHtml}</div>`;
+
+                renderCalendar();
+                showNotification(`Fixture actualizado: ${fixtures.length} partidos.`, "success");
+            } catch(e) {
+                statusEl.innerHTML = `<span style="color:var(--color-red);">❌ Error: ${e.message}</span>`;
+                showNotification("Error al actualizar fixture: " + e.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔄 Actualizar Fixture';
+            }
+        }
+
+        /* =========================================================
+           ADMIN — UTILIDADES COMPARTIDAS
+           ========================================================= */
+        function logCalendarFixtures(fixtures) { window.NEXT_FIXTURES = fixtures; }
+
+        function checkDataFreshness() {
+            const fixtures = typeof NEXT_FIXTURES !== "undefined" ? NEXT_FIXTURES : [];
+            const players = typeof STAR_PLAYERS_POOL !== "undefined" ? STAR_PLAYERS_POOL : [];
+            const fCount = fixtures.length;
+            const pCount = players.length;
+            const statusEl = document.getElementById("admin-fixtures-status");
+            if (statusEl && !statusEl.innerHTML.includes("✅") && !statusEl.innerHTML.includes("❌")) {
+                statusEl.innerHTML = `<span style="font-size:11px; color:var(--vt-text-dim);">Fixtures: ${fCount > 0 ? `<span style="color:var(--color-emerald);">${fCount} partidos</span>` : '<span style="color:var(--color-gold);">Sin datos</span>'} · Jugadores: ${pCount > 0 ? `<span style="color:var(--color-emerald);">${pCount}</span>` : '<span style="color:var(--color-gold);">Sin datos</span>'}</span>`;
             }
         }
 
